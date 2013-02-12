@@ -6,7 +6,6 @@
     int indent_type;
     int line_num_type;
 
-    grammar::OpImage* op_type;
     grammar::Ident* ident_type;
     grammar::NameList* names_type;
     grammar::TokenSequence* expr_seq_type;
@@ -26,8 +25,6 @@
 
 %type <expr_token_type> expr_token
 %type <expr_seq_type> expr_sequence
-
-%type <op_type> op
 
 %token INDENT EOL
 %token KW_FUNC KW_IF KW_IFNOT KW_ELSE KW_RETURN KW_IMPORT KW_EXPORT KW_RESERVED
@@ -160,9 +157,14 @@ expr_sequence:
 ;
 
 expr_token:
-    op
+    OPERATOR
     {
-        $$ = new grammar::OpToken(grammar::here(), $1->deliver());
+        $$ = new grammar::OpToken(grammar::here(), yytext);
+    }
+    |
+    '.'
+    {
+        $$ = new grammar::OpToken(grammar::here(), yytext);
     }
     |
     PIPE_SEP
@@ -342,22 +344,5 @@ ident:
     IDENT
     {
         $$ = new grammar::Ident(grammar::here(), yytext);
-    }
-;
-
-op:
-    OPERATOR
-    {
-        $$ = new grammar::OpImage(yytext);
-    }
-    |
-    '.'
-    {
-        $$ = new grammar::OpImage(yytext);
-    }
-    |
-    '!'
-    {
-        $$ = new grammar::OpImage(yytext);
     }
 ;

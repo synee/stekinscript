@@ -207,11 +207,11 @@ yield {
     return PIPE_KEY;
 }
 
-[-+*/%=<>\|~&^] {
+[-+*/%!=<>\|~&^] {
     return OPERATOR;
 }
 
-[()\[\],:.{}!@] {
+[()\[\],:.{}@] {
     return *yytext;
 }
 

@@ -98,8 +98,8 @@ NodeType const test::ASYNC_REFERENCE("asynchronous reference");
 NodeType const test::ASYNC_PIPE_RESULT("asynchronous pipe result");
 NodeType const test::ASYNC_PIPELINE("asynchronous pipeline");
 NodeType const test::SYNC_PIPELINE("synchronous pipeline");
-NodeType const test::PIPELINE_RESULT("pipeline result");
-NodeType const test::PIPELINE_NEXT("pipeline next");
+NodeType const test::PIPELINE_RETURN("pipeline return");
+NodeType const test::PIPELINE_CONTINUE("pipeline continue");
 
 NodeType const test::LIST_SLICE("list slice");
 NodeType const test::LIST_SLICE_DEFAULT("list slice default");

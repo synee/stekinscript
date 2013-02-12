@@ -1,8 +1,6 @@
 #include <algorithm>
-#include <vector>
 #include <map>
 
-#include <env.h>
 #include <output/stmt-nodes.h>
 #include <output/expr-nodes.h>
 #include <output/list-pipe.h>
@@ -13,13 +11,6 @@
 
 using namespace test;
 using namespace output;
-
-static std::set<std::string> nul_set;
-
-std::set<std::string> const& stekin::preImported()
-{
-    return nul_set;
-}
 
 void Block::write(std::ostream&) const
 {
@@ -125,15 +116,15 @@ void ThisDeclaration::write(std::ostream&) const
     DataTree::actualOne()(DEC_THIS);
 }
 
-void PipelineResult::write(std::ostream&) const
+void PipelineReturn::write(std::ostream&) const
 {
-    DataTree::actualOne()(PIPELINE_RESULT);
+    DataTree::actualOne()(PIPELINE_RETURN);
     expr->str();
 }
 
-void PipelineNext::write(std::ostream&) const
+void PipelineContinue::write(std::ostream&) const
 {
-    DataTree::actualOne()(PIPELINE_NEXT);
+    DataTree::actualOne()(PIPELINE_CONTINUE);
 }
 
 std::string Expression::strAsProp() const

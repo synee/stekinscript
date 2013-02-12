@@ -267,13 +267,13 @@ void BaseCompilingSpace::setAsyncSpace(misc::position const& pos
                                      , std::vector<std::string> const& params
                                      , util::sref<output::Block> block)
 {
+    setAsyncSpace(block);
     std::for_each(params.begin()
                 , params.end()
                 , [&](std::string const& param)
                   {
                       _symbols->defAsyncParam(pos, param);
                   });
-    setAsyncSpace(block);
 }
 
 void BaseCompilingSpace::setAsyncSpace(util::sref<output::Block> block)
@@ -337,19 +337,19 @@ void PipelineSpace::referenceThis()
 
 util::sptr<output::Statement const> PipelineSpace::compileRet()
 {
-    return util::mkptr(new output::PipelineResult(
+    return util::mkptr(new output::PipelineReturn(
                     util::mkptr(new output::ImportedName(misc::position(), "undefined"))));
 }
 
 util::sptr<output::Statement const> PipelineSpace::compileRet(
                                         util::sptr<Expression const> const& val)
 {
-    return util::mkptr(new output::PipelineResult(val->compile(*this)));
+    return util::mkptr(new output::PipelineReturn(val->compile(*this)));
 }
 
 util::sptr<output::Block> PipelineSpace::deliver()
 {
-    block()->addStmt(util::mkptr(new output::PipelineNext));
+    block()->addStmt(util::mkptr(new output::PipelineContinue));
     return BaseCompilingSpace::deliver();
 }
 

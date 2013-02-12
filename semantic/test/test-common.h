@@ -80,8 +80,8 @@ namespace test {
     extern NodeType const ASYNC_PIPE_RESULT;
     extern NodeType const ASYNC_PIPELINE;
     extern NodeType const SYNC_PIPELINE;
-    extern NodeType const PIPELINE_RESULT;
-    extern NodeType const PIPELINE_NEXT;
+    extern NodeType const PIPELINE_RETURN;
+    extern NodeType const PIPELINE_CONTINUE;
 
     extern NodeType const LIST_SLICE;
     extern NodeType const LIST_SLICE_DEFAULT;

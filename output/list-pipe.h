@@ -15,10 +15,10 @@ namespace output {
         std::string str() const;
     };
 
-    struct PipelineResult
+    struct PipelineReturn
         : Statement
     {
-        explicit PipelineResult(util::sptr<Expression const> e)
+        explicit PipelineReturn(util::sptr<Expression const> e)
             : expr(std::move(e))
         {}
 
@@ -27,7 +27,7 @@ namespace output {
         util::sptr<Expression const> const expr;
     };
 
-    struct PipelineNext
+    struct PipelineContinue
         : Statement
     {
         void write(std::ostream& os) const;

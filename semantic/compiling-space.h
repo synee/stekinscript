@@ -1,11 +1,8 @@
 #ifndef __STEKIN_SEMANTIC_COMPILING_SPACE_H__
 #define __STEKIN_SEMANTIC_COMPILING_SPACE_H__
 
-#include <string>
-#include <vector>
-
 #include <output/block.h>
-#include <util/pointer.h>
+#include <util/arrays.h>
 #include <misc/pos-type.h>
 
 #include "fwd-decl.h"

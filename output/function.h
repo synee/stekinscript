@@ -1,11 +1,6 @@
 #ifndef __STEKIN_OUTPUT_FUNCTION_H__
 #define __STEKIN_OUTPUT_FUNCTION_H__
 
-#include <vector>
-#include <ostream>
-
-#include <misc/pos-type.h>
-
 #include "fwd-decl.h"
 #include "block.h"
 

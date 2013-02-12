@@ -1,6 +1,8 @@
 #ifndef __STEKIN_OUTPUT_STATEMENT_NODES_H__
 #define __STEKIN_OUTPUT_STATEMENT_NODES_H__
 
+#include <vector>
+
 #include "node-base.h"
 
 namespace output {
@@ -9,15 +11,15 @@ namespace output {
         : Statement
     {
         Branch(util::sptr<Expression const> p
-             , util::sptr<Statement const> consequence_stmt
-             , util::sptr<Statement const> alternative_stmt)
+             , util::sptr<Statement const> c
+             , util::sptr<Statement const> a)
                 : predicate(std::move(p))
-                , consequence(std::move(consequence_stmt))
-                , alternative(std::move(alternative_stmt))
+                , consequence(std::move(c))
+                , alternative(std::move(a))
         {}
 
         void write(std::ostream& os) const;
-    public:
+
         util::sptr<Expression const> const predicate;
         util::sptr<Statement const> const consequence;
         util::sptr<Statement const> const alternative;

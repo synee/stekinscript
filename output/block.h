@@ -1,8 +1,6 @@
 #ifndef __STEKIN_OUTPUT_BLOCK_H__
 #define __STEKIN_OUTPUT_BLOCK_H__
 
-#include <vector>
-
 #include <util/arrays.h>
 
 #include "node-base.h"

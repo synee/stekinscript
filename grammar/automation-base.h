@@ -1,9 +1,7 @@
 #ifndef __STEKIN_GRAMMAR_AUTOMATION_BASE_H__
 #define __STEKIN_GRAMMAR_AUTOMATION_BASE_H__
 
-#include <vector>
-
-#include <util/pointer.h>
+#include <util/arrays.h>
 #include <misc/pos-type.h>
 
 #include "fwd-decl.h"

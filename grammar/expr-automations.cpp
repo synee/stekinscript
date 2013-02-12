@@ -60,6 +60,9 @@ void PipelineAutomation::accepted(AutomationStack&, util::sptr<Expression const>
 
 void PipelineAutomation::accepted(AutomationStack& stack, misc::position const& pos, Block&& block)
 {
+    if (_cache_list->empty()) {
+        error::invalidEmptyExpr(_cache_list->pos);
+    }
     stack.reduced(util::mkptr(new BlockPipeline(pos, std::move(_cache_list), std::move(block))));
 }
 
@@ -822,9 +825,8 @@ void AsyncPlaceholderAutomation::accepted(AutomationStack& stack, util::sptr<Exp
 void AsyncPlaceholderAutomation::accepted(
                 AutomationStack& stack, std::vector<util::sptr<Expression const>> list)
 {
-    stack.reduced(util::mkptr(new AsyncPlaceholder(pos
-                                                 , util::ptrarr<Expression const>(std::move(list))
-                                                                            .mapv(
+    stack.reduced(util::mkptr(new AsyncPlaceholder(
+                    pos, util::ptrarr<Expression const>(std::move(list)).mapv(
                                                      [&](util::sptr<Expression const> const& e, int)
                                                      {
                                                          return e->reduceAsName();

@@ -11,25 +11,25 @@ std::string AsyncPipeResult::str() const
     return "$result";
 }
 
-static std::string const ASYNC_MAPPER_NEXT(
+static std::string const ASYNC_MAPPER_CONTINUE(
 "return $next($index + 1, $result);\n"
 );
 
-static std::string const ASYNC_MAPPER_RESULT(
+static std::string const ASYNC_MAPPER_RETURN(
 "$result.push(#EXPRESSION);\n"
-+ ASYNC_MAPPER_NEXT
++ ASYNC_MAPPER_CONTINUE
 );
 
-void PipelineResult::write(std::ostream& os) const
+void PipelineReturn::write(std::ostream& os) const
 {
     os << util::replace_all(
-            ASYNC_MAPPER_RESULT
+            ASYNC_MAPPER_RETURN
                 , "#EXPRESSION", expr->str());
 }
 
-void PipelineNext::write(std::ostream& os) const
+void PipelineContinue::write(std::ostream& os) const
 {
-    os << ASYNC_MAPPER_NEXT;
+    os << ASYNC_MAPPER_CONTINUE;
 }
 
 static std::string const ASYNC_PIPE(

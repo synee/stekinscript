@@ -109,9 +109,10 @@ util::sptr<semantic::Expression const> StringLiteral::reduceAsExpr(BaseReducingE
 util::sptr<semantic::Expression const> ListLiteral::reduceAsExpr(BaseReducingEnv const& env) const
 {
     return util::mkptr(new semantic::ListLiteral(
-                pos, value.map([&](util::sptr<Expression const> const& e, int) {
-                         return e->reduceAsExpr(env);
-                     })));
+                pos, value.map([&](util::sptr<Expression const> const& e, int)
+                               {
+                                   return e->reduceAsExpr(env);
+                               })));
 }
 
 util::sptr<semantic::Expression const> PipeElement::reduceAsExpr(BaseReducingEnv const& env) const
@@ -142,9 +143,10 @@ util::sptr<semantic::Expression const> Call::reduceAsExpr(BaseReducingEnv const&
 {
     ArgReducingEnv args_env(env);
     util::ptrarr<semantic::Expression const> reduced_args(
-            args.map([&](util::sptr<Expression const> const& e, int index) {
-                return e->reduceAsArg(args_env, index);
-            }));
+            args.map([&](util::sptr<Expression const> const& e, int index)
+                     {
+                         return e->reduceAsArg(args_env, index);
+                     }));
     if (args_env.isAsync()) {
         return util::mkptr(new semantic::AsyncCall(
                     pos

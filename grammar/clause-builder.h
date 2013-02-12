@@ -1,13 +1,6 @@
 #ifndef __STEKIN_GRAMMAR_CLAUSE_BUILDER_H__
 #define __STEKIN_GRAMMAR_CLAUSE_BUILDER_H__
 
-#include <vector>
-#include <string>
-
-#include <semantic/fwd-decl.h>
-#include <util/pointer.h>
-#include <misc/pos-type.h>
-
 #include "automation-base.h"
 #include "block.h"
 
