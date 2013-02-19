@@ -1,6 +1,7 @@
 #include <semantic/function.h>
 #include <report/errors.h>
 
+#include "clauses.h"
 #include "stmt-automations.h"
 #include "expr-automations.h"
 #include "stmt-nodes.h"
@@ -8,18 +9,62 @@
 
 using namespace grammar;
 
-void ExprStmtAutomation::activated(AutomationStack& stack)
+void ExprStmtAutomation::pushOp(AutomationStack& stack, Token const& token)
 {
     stack.push(util::mkptr(new PipelineAutomation));
+    stack.top()->pushOp(stack, token);
+}
+
+void ExprStmtAutomation::pushFactor(AutomationStack& stack
+                                  , util::sptr<Expression const> factor
+                                  , std::string const& image)
+{
+    stack.push(util::mkptr(new PipelineAutomation));
+    stack.top()->pushFactor(stack, std::move(factor), image);
+}
+
+void ExprStmtAutomation::pushThis(AutomationStack& stack, misc::position const& pos)
+{
+    stack.push(util::mkptr(new PipelineAutomation));
+    stack.top()->pushThis(stack, pos);
+}
+
+void ExprStmtAutomation::pushOpenParen(AutomationStack& stack, misc::position const& pos)
+{
+    stack.push(util::mkptr(new PipelineAutomation));
+    stack.top()->pushOpenParen(stack, pos);
+}
+
+void ExprStmtAutomation::pushOpenBracket(AutomationStack& stack, misc::position const& pos)
+{
+    stack.push(util::mkptr(new PipelineAutomation));
+    stack.top()->pushOpenBracket(stack, pos);
+}
+
+void ExprStmtAutomation::pushOpenBrace(AutomationStack& stack, misc::position const& pos)
+{
+    stack.push(util::mkptr(new PipelineAutomation));
+    stack.top()->pushOpenBrace(stack, pos);
 }
 
 void ExprStmtAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
 {
-    if (_exprs.size() < 2) {
+    _before_colon = false;
+    if (_exprs.size() == 1) {
         stack.push(util::mkptr(new PipelineAutomation));
         return;
     }
     error::unexpectedToken(pos, ":");
+}
+
+void ExprStmtAutomation::pushIf(AutomationStack& stack, misc::position const&)
+{
+    stack.replace(util::mkptr(new IfAutomation));
+}
+
+void ExprStmtAutomation::pushElse(AutomationStack& stack, misc::position const& pos)
+{
+    stack.replace(util::mkptr(new ElseAutomation(pos)));
 }
 
 void ExprStmtAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)
@@ -27,9 +72,9 @@ void ExprStmtAutomation::accepted(AutomationStack&, util::sptr<Expression const>
     _exprs.push_back(std::move(expr));
 }
 
-bool ExprStmtAutomation::finishOnBreak(bool) const
+bool ExprStmtAutomation::finishOnBreak(bool sub_empty) const
 {
-    return true;
+    return _before_colon || !sub_empty || _exprs.size() == 2;
 }
 
 void ExprStmtAutomation::finish(ClauseStackWrapper&, AutomationStack& stack, misc::position const&)
@@ -48,6 +93,38 @@ util::sptr<Statement> ExprStmtAutomation::_reduceAsStmt()
         return util::mkptr(new NameDef(pos, _exprs[0]->reduceAsName(), std::move(_exprs[1])));
     }
     return util::mkptr(new AttrSet(pos, std::move(_exprs[0]), std::move(_exprs[1])));
+}
+
+void IfAutomation::activated(AutomationStack& stack)
+{
+    stack.push(util::mkptr(new PipelineAutomation));
+}
+
+void IfAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)
+{
+    _pred_cache = std::move(expr);
+}
+
+bool IfAutomation::finishOnBreak(bool sub_empty) const
+{
+    return !sub_empty;
+}
+
+void IfAutomation::finish(
+                ClauseStackWrapper& wrapper, AutomationStack& stack, misc::position const&)
+{
+    if (_pred_cache->empty()) {
+        error::invalidEmptyExpr(_pred_cache->pos);
+    }
+    wrapper.pushIfClause(std::move(_pred_cache));
+    stack.pop();
+}
+
+void ElseAutomation::finish(
+                ClauseStackWrapper& wrapper, AutomationStack& stack, misc::position const&)
+{
+    wrapper.pushElseClause(else_pos);
+    stack.pop();
 }
 
 void ExprReceiver::activated(AutomationStack& stack)

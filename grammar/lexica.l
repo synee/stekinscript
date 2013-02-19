@@ -105,6 +105,14 @@ yield {
     return KW_RESERVED;
 }
 
+for {
+    return KW_RESERVED;
+}
+
+while {
+    return KW_RESERVED;
+}
+
 [A-Z] {
     error::reservedWord(grammar::here(), yytext);
     return IDENT;
@@ -203,8 +211,24 @@ yield {
     return PIPE_INDEX;
 }
 
+[$]index {
+    return PIPE_INDEX;
+}
+
 [$]k {
     return PIPE_KEY;
+}
+
+[$]key {
+    return PIPE_KEY;
+}
+
+[$]r {
+    return PIPE_RESULT;
+}
+
+[$]result {
+    return PIPE_RESULT;
 }
 
 [-+*/%!=<>\|~&^] {

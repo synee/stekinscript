@@ -11,36 +11,72 @@
 
 namespace grammar {
 
+    struct ClauseBase {
+        explicit ClauseBase(int ind)
+            : indent(ind)
+            , _member_indent(-1)
+        {}
+
+        ClauseBase(ClauseBase const&) = delete;
+        virtual ~ClauseBase() {}
+
+        int const indent;
+
+        void acceptFunc(util::sptr<Function const> func);
+        void acceptStmt(util::sptr<Statement> stmt);
+        void acceptElse(misc::position const& else_pos, Block&& block);
+
+        virtual void acceptExpr(util::sptr<Expression const>) {}
+        virtual void deliver() = 0;
+        virtual bool shrinkOn(int level) const;
+
+        void nextToken(util::sptr<Token> const& token);
+        bool tryFinish(misc::position const& pos, std::vector<util::sptr<ClauseBase>>& clauses);
+        void prepareArith();
+        void prepareReturn();
+        void prepareExport(std::vector<std::string> const& names);
+
+        void setMemberIndent(int level, misc::position const& pos);
+    protected:
+        AutomationStack _stack;
+        int _member_indent;
+        Block _block;
+    };
+
     struct IfClause
         : ClauseBase
     {
-        void acceptFunc(util::sptr<Function const> func);
-        void acceptStmt(util::sptr<Statement> stmt);
         void deliver();
-        void acceptElse(misc::position const& else_pos);
-        void acceptExpr(util::sptr<Expression const> expr);
 
-        IfClause(int indent_level, misc::position const& pos, util::sref<ClauseBase> parent);
-
-        misc::position const pos;
+        IfClause(int indent_len, util::sptr<Expression const> pred, util::sref<ClauseBase> parent)
+            : ClauseBase(indent_len)
+            , _predicate(std::move(pred))
+            , _parent(parent)
+        {}
     private:
-        bool _elseMatched() const;
-
         util::sptr<Expression const> _predicate;
+        util::sref<ClauseBase> const _parent;
+    };
 
-        util::sptr<misc::position> _last_else_pos_or_nul_if_not_matched;
-        Block* _current_branch;
-        Block _consequence;
-        Block _alternative;
+    struct ElseClause
+        : ClauseBase
+    {
+        ElseClause(int indent_len, misc::position const& pos, util::sref<ClauseBase> parent)
+            : ClauseBase(indent_len)
+            , else_pos(pos)
+            , _parent(parent)
+        {}
 
+        void deliver();
+
+        misc::position const else_pos;
+    private:
         util::sref<ClauseBase> const _parent;
     };
 
     struct IfnotClause
         : ClauseBase
     {
-        void acceptFunc(util::sptr<Function const> func);
-        void acceptStmt(util::sptr<Statement> stmt);
         void deliver();
         void acceptExpr(util::sptr<Expression const> expr);
 
@@ -49,15 +85,12 @@ namespace grammar {
         misc::position const pos;
     private:
         util::sptr<Expression const> _predicate;
-        Block _alternative;
         util::sref<ClauseBase> const _parent;
     };
 
     struct FunctionClause
         : ClauseBase
     {
-        void acceptFunc(util::sptr<Function const> func);
-        void acceptStmt(util::sptr<Statement> stmt);
         void deliver();
 
         FunctionClause(int indent_level
@@ -76,8 +109,28 @@ namespace grammar {
         std::string const name;
         std::vector<std::string> const param_names;
     private:
-        Block _body;
         util::sref<ClauseBase> const _parent;
+    };
+
+    struct BlockReceiverClause
+        : ClauseBase
+    {
+        BlockReceiverClause(int level
+                          , AutomationStack& stack
+                          , misc::position const& pos
+                          , util::sref<AutomationBase> blockRecr)
+            : ClauseBase(level)
+            , _stack(stack)
+            , _pos(pos)
+            , _blockRecr(blockRecr)
+        {}
+
+        void deliver();
+        bool shrinkOn(int level) const;
+    private:
+        AutomationStack& _stack;
+        misc::position const _pos;
+        util::sref<AutomationBase> _blockRecr;
     };
 
 }

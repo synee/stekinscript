@@ -45,6 +45,8 @@ namespace grammar {
         virtual void pushColon(AutomationStack& stack, misc::position const& pos);
         virtual void pushPropertySeparator(AutomationStack& stack, misc::position const& pos);
         virtual void pushComma(AutomationStack& stack, misc::position const& pos);
+        virtual void pushIf(AutomationStack& stack, misc::position const& pos);
+        virtual void pushElse(AutomationStack& stack, misc::position const& pos);
 
         virtual void accepted(AutomationStack&, util::sptr<Expression const> expr) = 0;
         virtual void accepted(AutomationStack&, std::vector<util::sptr<Expression const>>) {}
@@ -77,36 +79,6 @@ namespace grammar {
         std::vector<util::sptr<AutomationBase>> _stack;
     };
 
-    struct ClauseBase {
-        explicit ClauseBase(int ind)
-            : indent(ind)
-            , _member_indent(-1)
-        {}
-
-        ClauseBase(ClauseBase const&) = delete;
-        virtual ~ClauseBase() {}
-
-        int const indent;
-
-        virtual void acceptFunc(util::sptr<Function const> func) = 0;
-        virtual void acceptStmt(util::sptr<Statement> stmt) = 0;
-        virtual void acceptExpr(util::sptr<Expression const>) {}
-        virtual void acceptElse(misc::position const& else_pos);
-        virtual void deliver() = 0;
-        virtual bool shrinkOn(int level) const;
-
-        void nextToken(util::sptr<Token> const& token);
-        bool tryFinish(misc::position const& pos, std::vector<util::sptr<ClauseBase>>& clauses);
-        void prepareArith();
-        void prepareReturn();
-        void prepareExport(std::vector<std::string> const& names);
-
-        void setMemberIndent(int level, misc::position const& pos);
-    protected:
-        AutomationStack _stack;
-        int _member_indent;
-    };
-
     struct ClauseStackWrapper {
         ClauseStackWrapper(int indent
                          , AutomationStack& stack
@@ -119,6 +91,8 @@ namespace grammar {
         {}
 
         void pushBlockReceiver(util::sref<AutomationBase> blockRecr);
+        void pushIfClause(util::sptr<Expression const> predicate);
+        void pushElseClause(misc::position const& else_pos);
     private:
         int const _last_indent;
         AutomationStack& _stack;

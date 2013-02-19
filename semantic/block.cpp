@@ -28,7 +28,7 @@ util::sptr<output::Statement const> Block::compile(BaseCompilingSpace&& space) c
     util::sref<output::Block> root_block(space.block());
     _funcs.iter([&](util::sptr<Function const> const& func, int)
                 {
-                    root_sym->defName(func->pos, func->name);
+                    root_sym->defFunc(func->pos, func->name);
                 });
     _stmts.iter([&](util::sptr<Statement const> const& stmt, int)
                 {

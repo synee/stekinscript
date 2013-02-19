@@ -424,7 +424,7 @@ TEST_F(AutomationTest, ReduceLookupSlice)
                 (pos, LIST_SLICE_BEGIN)
                     (pos, IDENTIFIER, "hakase")
                     (pos, IDENTIFIER, "minokami")
-                    (pos, LIST_SLICE_DEFAULT)
+                    (pos, UNDEFINED)
                     (pos, IDENTIFIER, "aioi")
                 (pos, LIST_SLICE_END)
             (pos, OPERAND)
@@ -603,7 +603,7 @@ TEST_F(AutomationTest, ReduceSingleThis)
     stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
 
     stack->top()->pushThis(stackref(), pos);
-    ASSERT_TRUE(stack->top()->finishOnBreak(false));
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
 
     finish(pos);
     ASSERT_TRUE(stack->empty());
@@ -628,44 +628,44 @@ TEST_F(AutomationTest, ReduceThisAndProperty)
 
     stack->top()->pushThis(stackref(), pos);
     pushIdent(pos, "higurasi");
-    ASSERT_TRUE(stack->top()->finishOnBreak(false));
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushOp(stackref(), TestToken(pos, "+"));
-    ASSERT_FALSE(stack->top()->finishOnBreak(false));
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushThis(stackref(), pos);
-    ASSERT_TRUE(stack->top()->finishOnBreak(false));
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushOpenParen(stackref(), pos);
     stack->top()->pushThis(stackref(), pos);
-    ASSERT_FALSE(stack->top()->finishOnBreak(false));
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushComma(stackref(), pos);
-    ASSERT_FALSE(stack->top()->finishOnBreak(false));
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushThis(stackref(), pos);
-    ASSERT_FALSE(stack->top()->finishOnBreak(false));
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushOpenBracket(stackref(), pos);
     stack->top()->pushThis(stackref(), pos);
     stack->top()->matchClosing(stackref(), TestToken(pos, "]"));
 
     stack->top()->pushComma(stackref(), pos);
-    ASSERT_FALSE(stack->top()->finishOnBreak(false));
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushThis(stackref(), pos);
-    ASSERT_FALSE(stack->top()->finishOnBreak(false));
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
 
     stack->top()->matchClosing(stackref(), TestToken(pos, ")"));
-    ASSERT_TRUE(stack->top()->finishOnBreak(false));
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushOp(stackref(), TestToken(pos, "+"));
-    ASSERT_FALSE(stack->top()->finishOnBreak(false));
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
 
     stack->top()->pushThis(stackref(), pos);
-    ASSERT_TRUE(stack->top()->finishOnBreak(false));
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
     pushInteger(pos, "20130121");
-    ASSERT_TRUE(stack->top()->finishOnBreak(false));
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
 
     finish(pos);
     ASSERT_TRUE(stack->empty());
@@ -1312,4 +1312,138 @@ TEST_F(AutomationTest, EmptyPipeSection)
     ASSERT_EQ(2, getInvalidEmptyExprRecs().size());
     ASSERT_EQ(pos_b, getInvalidEmptyExprRecs()[0].pos);
     ASSERT_EQ(pos_c, getInvalidEmptyExprRecs()[1].pos);
+}
+
+TEST_F(AutomationTest, Conditional)
+{
+    misc::position pos(30);
+    TestClause clause;
+    stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
+
+    pushIdent(pos, "teru");
+
+    pushIf(pos);
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
+
+    pushIdent(pos, "saki");
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
+
+    pushElse(pos);
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
+
+    stack->top()->pushOp(stackref(), TestToken(pos, "+"));
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
+
+    pushIdent(pos, "kyotarou");
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
+    finish(pos);
+
+    clause.compile();
+    clause.filter->deliver().compile(semantic::CompilingSpace());
+    ASSERT_FALSE(error::hasError());
+    ASSERT_TRUE(stack->empty());
+
+    DataTree::expectOne()
+        (BLOCK_BEGIN)
+        (pos, ARITHMETICS)
+            (pos, CONDITIONAL)
+            (pos, OPERAND)
+                (pos, IDENTIFIER, "saki")
+            (pos, OPERAND)
+                (pos, IDENTIFIER, "teru")
+            (pos, OPERAND)
+                (pos, PRE_UNARY_OP, "+")
+                (pos, OPERAND)
+                    (pos, IDENTIFIER, "kyotarou")
+        (BLOCK_END)
+    ;
+}
+
+TEST_F(AutomationTest, ConditionalTerminatedAfterIf)
+{
+    misc::position pos(31);
+    misc::position pos_a(3100);
+    TestClause clause;
+    stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
+
+    pushIdent(pos, "kataoka");
+    stack->top()->pushOpenParen(stackref(), pos);
+
+    pushIdent(pos, "haramura");
+    pushIf(pos);
+    pushIdent(pos_a, "someya");
+    stack->top()->matchClosing(stackref(), TestToken(pos, ")"));
+
+    finish(pos);
+    clause.compile();
+    ASSERT_TRUE(error::hasError());
+
+    std::vector<IncompleteConditionalRec> recs(getIncompleteConditionalRecs());
+    ASSERT_EQ(1, recs.size());
+    ASSERT_EQ(pos_a, recs[0].pos);
+}
+
+TEST_F(AutomationTest, ConditionalWithEmptyPredicate)
+{
+    misc::position pos(32);
+    misc::position pos_a(3200);
+    TestClause clause;
+    stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
+
+    pushIdent(pos, "ueno");
+    stack->top()->pushOpenParen(stackref(), pos);
+
+    pushIdent(pos, "kakei");
+    pushIf(pos);
+    pushElse(pos_a);
+    pushIdent(pos, "fukuji");
+    stack->top()->matchClosing(stackref(), TestToken(pos, ")"));
+
+    finish(pos);
+    clause.compile();
+    ASSERT_TRUE(error::hasError());
+
+    std::vector<InvalidEmptyExprRec> recs(getInvalidEmptyExprRecs());
+    ASSERT_EQ(1, recs.size());
+    ASSERT_EQ(pos_a, recs[0].pos);
+}
+
+TEST_F(AutomationTest, ConditionalEncounterElseBeforeIf)
+{
+    misc::position pos(33);
+    misc::position pos_a(3300);
+    TestClause clause;
+    stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
+
+    pushIdent(pos, "hisa");
+    pushElse(pos);
+    pushIdent(pos, "mihoko");
+    pushElse(pos_a);
+
+    ASSERT_TRUE(error::hasError());
+
+    std::vector<UnexpectedTokenRec> recs(getUnexpectedTokenRecs());
+    ASSERT_EQ(1, recs.size());
+    ASSERT_EQ(pos_a, recs[0].pos);
+    ASSERT_EQ("else", recs[0].image);
+}
+
+TEST_F(AutomationTest, ConditionalEncounterDuplateIf)
+{
+    misc::position pos(34);
+    misc::position pos_a(3400);
+    TestClause clause;
+    stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
+
+    pushIdent(pos, "yuki");
+    pushIf(pos);
+    pushIdent(pos, "kyoutarou");
+    pushIf(pos_a);
+
+    ASSERT_TRUE(error::hasError());
+
+    std::vector<UnexpectedTokenRec> recs(getUnexpectedTokenRecs());
+    ASSERT_EQ(1, recs.size());
+    ASSERT_EQ(pos_a, recs[0].pos);
+    ASSERT_EQ("if", recs[0].image);
 }

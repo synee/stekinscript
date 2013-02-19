@@ -45,6 +45,16 @@ struct AutomationTest
         stack->top()->pushFactor(*stkptr, util::mkptr(new grammar::PipeElement(pos)), "$");
     }
 
+    void pushIf(misc::position const& pos)
+    {
+        stack->top()->pushIf(*stkptr, pos);
+    }
+
+    void pushElse(misc::position const& pos)
+    {
+        stack->top()->pushElse(*stkptr, pos);
+    }
+
     void finish(misc::position const& pos)
     {
         std::vector<util::sptr<grammar::ClauseBase>> clauses;

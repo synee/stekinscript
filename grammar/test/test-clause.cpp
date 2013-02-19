@@ -23,8 +23,6 @@ TEST_F(ClauseTest, FuncClause)
                       pos, "SonOfKorhal", util::mkptr(new grammar::IntLiteral(pos, "20110116")))));
 
     func_acc0.deliver();
-    ASSERT_TRUE(receiver.stmt_or_nul_if_not_set.nul());
-    ASSERT_TRUE(receiver.func_or_nul_if_not_set.not_nul());
     receiver.compile();
     receiver.filter->deliver().compile(semantic::CompilingSpace());
 
@@ -47,7 +45,7 @@ TEST_F(ClauseTest, FuncClause)
     TestClause test_receiver;
     grammar::FunctionClause func_acc1(
             0, pos, "func2", std::vector<std::string>({ "Mengsk" }), util::mkref(test_receiver));
-    func_acc1.acceptElse(pos_else);
+    func_acc1.acceptElse(pos_else, grammar::Block());
     ASSERT_TRUE(error::hasError());
     ASSERT_EQ(1, getElseNotMatchIfRecs().size());
     ASSERT_EQ(pos_else, getElseNotMatchIfRecs()[0].else_pos);
@@ -72,8 +70,6 @@ TEST_F(ClauseTest, FuncAccNested)
 
     func_acc1.deliver();
     func_acc0.deliver();
-    ASSERT_TRUE(receiver.stmt_or_nul_if_not_set.nul());
-    ASSERT_TRUE(receiver.func_or_nul_if_not_set.not_nul());
     receiver.compile();
     receiver.filter->deliver().compile(semantic::CompilingSpace());
 

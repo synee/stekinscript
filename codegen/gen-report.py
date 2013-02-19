@@ -201,6 +201,14 @@ std::cerr << "    another `else' already matches the `if' at " << prev_else_pos.
 , Param(POS_TYPE, 'prev_else_pos'), Param(POS_TYPE, 'this_else_pos')),
 
 ReportFunc(
+'incompleteConditional',
+lineno() + '''
+std::cerr << pos.str() << std::endl;
+std::cerr << "    incomplete conditional expression, `else' is expected" << std::endl;
+'''
+, Param(POS_TYPE, 'pos')),
+
+ReportFunc(
 'invalidIndent',
 lineno() + '''
 std::cerr << pos.str() << std::endl;
@@ -321,6 +329,14 @@ std::cerr << pos.str() << std::endl;
 std::cerr << "    condition type is not boolean, actual type: " << actual_type << std::endl;
 '''
 , Param(POS_TYPE, 'pos'), Param(STR_TYPE, 'actual_type')),
+
+ReportFunc(
+'returnNotSync',
+lineno() + '''
+std::cerr << pos.str() << std::endl;
+std::cerr << "    return statement not in synchronous context." << std::endl;
+'''
+, Param(POS_TYPE, 'pos')),
 
 ReportFunc(
 'pipeReferenceNotInListContext',

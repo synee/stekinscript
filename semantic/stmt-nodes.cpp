@@ -4,6 +4,7 @@
 #include <output/stmt-nodes.h>
 
 #include "stmt-nodes.h"
+#include "expr-nodes.h"
 #include "function.h"
 #include "compiling-space.h"
 
@@ -68,7 +69,7 @@ bool Return::isAsync() const
 
 void ReturnNothing::compile(BaseCompilingSpace& space) const
 {
-    space.block()->addStmt(space.compileRet());
+    space.block()->addStmt(space.compileRet(util::mkptr(new Undefined(pos))));
 }
 
 void Import::compile(BaseCompilingSpace& space) const

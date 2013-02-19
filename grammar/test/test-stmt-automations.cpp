@@ -93,3 +93,30 @@ TEST_F(AutomationTest, ReduceInvalidLeftValue)
     ASSERT_EQ(1, recs.size());
     ASSERT_EQ(pos, recs[0].pos);
 }
+
+TEST_F(AutomationTest, BreakAfterColon)
+{
+    misc::position pos(5);
+    TestClause clause;
+    stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
+
+    pushIdent(pos, "sasa");
+    stack->top()->pushColon(stackref(), pos);
+    ASSERT_FALSE(stack->top()->finishOnBreak(true));
+    pushIdent(pos, "nidori");
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
+    finish(pos);
+    ASSERT_TRUE(stack->empty());
+
+    clause.compile();
+    clause.filter->deliver().compile(semantic::CompilingSpace());
+    ASSERT_FALSE(error::hasError());
+    ASSERT_TRUE(stack->empty());
+
+    DataTree::expectOne()
+        (BLOCK_BEGIN)
+        (pos, NAME_DEF, "sasa")
+            (pos, IDENTIFIER, "nidori")
+        (BLOCK_END)
+    ;
+}

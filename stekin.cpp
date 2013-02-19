@@ -6,6 +6,7 @@
 #include <semantic/function.h>
 #include <semantic/compiling-space.h>
 #include <output/node-base.h>
+#include <output/function.h>
 #include <report/errors.h>
 
 #include "env.h"

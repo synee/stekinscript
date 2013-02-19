@@ -12,9 +12,16 @@
 
 using namespace grammar;
 
+static void checkEmptyExpr(util::sref<Expression const> expr)
+{
+    if (expr->empty()) {
+        error::invalidEmptyExpr(expr->pos);
+    }
+}
+
 void PipelineAutomation::activated(AutomationStack& stack)
 {
-    stack.push(util::mkptr(new ArithAutomation));
+    stack.push(util::mkptr(new ConditionalAutomation));
 }
 
 void PipelineAutomation::pushPipeSep(AutomationStack& stack, Token const& token)
@@ -22,7 +29,7 @@ void PipelineAutomation::pushPipeSep(AutomationStack& stack, Token const& token)
     _tryReducePipe();
     _cache_op_pos = token.pos;
     _cache_pipe_op = token.image;
-    stack.push(util::mkptr(new ArithAutomation));
+    stack.push(util::mkptr(new ConditionalAutomation));
 }
 
 void PipelineAutomation::matchClosing(AutomationStack& stack, Token const& closer)
@@ -60,9 +67,7 @@ void PipelineAutomation::accepted(AutomationStack&, util::sptr<Expression const>
 
 void PipelineAutomation::accepted(AutomationStack& stack, misc::position const& pos, Block&& block)
 {
-    if (_cache_list->empty()) {
-        error::invalidEmptyExpr(_cache_list->pos);
-    }
+    checkEmptyExpr(*_cache_list);
     stack.reduced(util::mkptr(new BlockPipeline(pos, std::move(_cache_list), std::move(block))));
 }
 
@@ -93,12 +98,8 @@ void PipelineAutomation::_tryReducePipe()
     if (_cache_section.nul()) {
         return;
     }
-    if (_cache_list->empty()) {
-        error::invalidEmptyExpr(_cache_list->pos);
-    }
-    if (_cache_section->empty()) {
-        error::invalidEmptyExpr(_cache_section->pos);
-    }
+    checkEmptyExpr(*_cache_list);
+    checkEmptyExpr(*_cache_section);
     _cache_list.reset(new Pipeline(
                 _cache_op_pos, std::move(_cache_list), _cache_pipe_op, std::move(_cache_section)));
 }
@@ -112,6 +113,107 @@ void PipelineAutomation::_reduce(AutomationStack& stack)
 bool PipelineAutomation::_afterOperator(bool sub_empty) const
 {
     return sub_empty && _cache_list.not_nul() && (!_cache_pipe_op.empty()) && _cache_section.nul();
+}
+
+void ConditionalAutomation::activated(AutomationStack& stack)
+{
+    stack.push(util::mkptr(new ArithAutomation));
+}
+
+void ConditionalAutomation::pushPipeSep(AutomationStack& stack, Token const& token)
+{
+    _forceReduce(stack);
+    stack.top()->pushPipeSep(stack, token);
+}
+
+void ConditionalAutomation::matchClosing(AutomationStack& stack, Token const& closer)
+{
+    _forceReduce(stack);
+    stack.top()->matchClosing(stack, closer);
+}
+
+void ConditionalAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
+{
+    _forceReduce(stack);
+    stack.top()->pushColon(stack, pos);
+}
+
+void ConditionalAutomation::pushPropertySeparator(AutomationStack& stack, misc::position const& pos)
+{
+    _forceReduce(stack);
+    stack.top()->pushPropertySeparator(stack, pos);
+}
+
+void ConditionalAutomation::pushComma(AutomationStack& stack, misc::position const& pos)
+{
+    _forceReduce(stack);
+    stack.top()->pushComma(stack, pos);
+}
+
+void ConditionalAutomation::pushIf(AutomationStack& stack, misc::position const& pos)
+{
+    if (!_before_if) {
+        error::unexpectedToken(pos, "if");
+        return;
+    }
+    _before_if = false;
+    activated(stack);
+}
+
+void ConditionalAutomation::pushElse(AutomationStack& stack, misc::position const& pos)
+{
+    if (!_before_else) {
+        error::unexpectedToken(pos, "else");
+        return;
+    }
+    _before_else = false;
+    activated(stack);
+}
+
+void ConditionalAutomation::accepted(AutomationStack& stack, util::sptr<Expression const> expr)
+{
+    if (_cache_consq.nul()) {
+        _cache_consq = std::move(expr);
+        return;
+    }
+    if (_cache_pred.nul()) {
+        _cache_pred = std::move(expr);
+        return;
+    }
+
+    checkEmptyExpr(*_cache_consq);
+    checkEmptyExpr(*_cache_pred);
+    checkEmptyExpr(*expr);
+    misc::position pos(_cache_consq->pos);
+    stack.reduced(util::mkptr(new grammar::Conditional(
+                        pos, std::move(_cache_pred), std::move(_cache_consq), std::move(expr))));
+}
+
+bool ConditionalAutomation::finishOnBreak(bool sub_empty) const
+{
+    if (_before_if) {
+        return _previous->finishOnBreak(sub_empty && (_cache_consq.nul() || _cache_consq->empty()));
+    }
+    if (_before_else) {
+        return false;
+    }
+    return !sub_empty;
+}
+
+void ConditionalAutomation::finish(
+                    ClauseStackWrapper& wrapper, AutomationStack& stack, misc::position const& pos)
+{
+    _forceReduce(stack);
+    stack.top()->finish(wrapper, stack, pos);
+}
+
+void ConditionalAutomation::_forceReduce(AutomationStack& stack)
+{
+    if (!_before_if) {
+        error::incompleteConditional(_cache_pred->pos);
+    }
+    stack.reduced(std::move(_cache_consq));
+    return;
 }
 
 namespace {
@@ -447,6 +549,20 @@ void ArithAutomation::pushComma(AutomationStack& stack, misc::position const& po
     }
 }
 
+void ArithAutomation::pushIf(AutomationStack& stack, misc::position const& pos)
+{
+    if (_reduceIfPossible(stack, pos, "if")) {
+        stack.top()->pushIf(stack, pos);
+    }
+}
+
+void ArithAutomation::pushElse(AutomationStack& stack, misc::position const& pos)
+{
+    if (_reduceIfPossible(stack, pos, "else")) {
+        stack.top()->pushElse(stack, pos);
+    }
+}
+
 void ArithAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)
 {
     _factor_stack.push_back(std::move(expr));
@@ -472,12 +588,12 @@ void ArithAutomation::accepted(AutomationStack&, std::vector<util::sptr<Expressi
     }
 }
 
-bool ArithAutomation::finishOnBreak(bool) const
+bool ArithAutomation::finishOnBreak(bool sub_empty) const
 {
     if (_need_factor && !_empty()) {
         return false;
     }
-    return _previous->finishOnBreak(_empty());
+    return _previous->finishOnBreak(sub_empty && _empty());
 }
 
 void ArithAutomation::finish(

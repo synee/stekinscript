@@ -70,6 +70,46 @@ namespace output {
         util::sptr<Statement const> const section;
     };
 
+    struct PipeElement
+        : Expression
+    {
+        explicit PipeElement(misc::position const& pos)
+            : Expression(pos)
+        {}
+
+        std::string str() const;
+    };
+
+    struct PipeIndex
+        : Expression
+    {
+        explicit PipeIndex(misc::position const& pos)
+            : Expression(pos)
+        {}
+
+        std::string str() const;
+    };
+
+    struct PipeKey
+        : Expression
+    {
+        explicit PipeKey(misc::position const& pos)
+            : Expression(pos)
+        {}
+
+        std::string str() const;
+    };
+
+    struct PipeResult
+        : Expression
+    {
+        explicit PipeResult(misc::position const& pos)
+            : Expression(pos)
+        {}
+
+        std::string str() const;
+    };
+
 }
 
 #endif /* __STEKIN_OUTPUT_LIST_PIPELINE_H__ */

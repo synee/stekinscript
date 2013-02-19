@@ -17,8 +17,8 @@ TEST_F(StmtNodesTest, Arithmetics)
     util::sptr<semantic::Filter> filter(std::move(mkfilter()));
     grammar::Arithmetics arith0(pos, util::mkptr(new grammar::IntLiteral(pos, "1840")));
     grammar::Arithmetics arith1(pos, util::mkptr(new grammar::BoolLiteral(pos, false)));
-    arith0.compile(*filter, grammar::ExprReducingEnv());
-    arith1.compile(*filter, grammar::ExprReducingEnv());
+    arith0.compile(*filter);
+    arith1.compile(*filter);
     filter->deliver().compile(semantic::CompilingSpace());
     ASSERT_FALSE(error::hasError());
 
@@ -38,8 +38,8 @@ TEST_F(StmtNodesTest, NameDef)
     util::sptr<semantic::Filter> filter(std::move(mkfilter()));
     grammar::NameDef def0(pos, "Shinji", util::mkptr(new grammar::FloatLiteral(pos, "18.47")));
     grammar::NameDef def1(pos, "Asuka", util::mkptr(new grammar::Identifier(pos, "tsundere")));
-    def0.compile(*filter, grammar::ExprReducingEnv());
-    def1.compile(*filter, grammar::ExprReducingEnv());
+    def0.compile(*filter);
+    def1.compile(*filter);
     filter->deliver().compile(semantic::CompilingSpace());
     ASSERT_FALSE(error::hasError());
 
@@ -59,8 +59,8 @@ TEST_F(StmtNodesTest, Returns)
     util::sptr<semantic::Filter> filter(std::move(mkfilter()));
     grammar::Return ret0(pos, util::mkptr(new grammar::Identifier(pos, "KaworuNagisa")));
     grammar::ReturnNothing ret1(pos);
-    ret0.compile(*filter, grammar::ExprReducingEnv());
-    ret1.compile(*filter, grammar::ExprReducingEnv());
+    ret0.compile(*filter);
+    ret1.compile(*filter);
     filter->deliver().compile(semantic::CompilingSpace());
     ASSERT_FALSE(error::hasError());
 
@@ -96,19 +96,18 @@ TEST_F(StmtNodesTest, Branch)
 {
     misc::position pos(6);
     util::sptr<semantic::Filter> filter(std::move(mkfilter()));
-    grammar::Branch(pos
-                  , util::mkptr(new grammar::BoolLiteral(pos, true))
-                  , std::move(grammar::Block())
-                  , std::move(grammar::Block()))
-        .compile(*filter, grammar::ExprReducingEnv());
+    grammar::Branch branch0(pos
+                          , util::mkptr(new grammar::BoolLiteral(pos, true))
+                          , std::move(grammar::Block()));
+    branch0.acceptElse(pos, grammar::Block());
+    branch0.compile(*filter);
 
     grammar::Block block0;
     block0.addStmt(util::mkptr(new grammar::Arithmetics(
                     pos, util::mkptr(new grammar::Identifier(pos, "Kaji")))));
     block0.addStmt(util::mkptr(new grammar::ReturnNothing(pos)));
-    grammar::BranchConsqOnly(
-                pos, util::mkptr(new grammar::BoolLiteral(pos, false)), std::move(block0))
-        .compile(*filter, grammar::ExprReducingEnv());
+    grammar::Branch(pos, util::mkptr(new grammar::BoolLiteral(pos, false)), std::move(block0))
+        .compile(*filter);
 
     grammar::Block block1;
     block1.addStmt(util::mkptr(new grammar::Arithmetics(
@@ -116,7 +115,7 @@ TEST_F(StmtNodesTest, Branch)
     block1.addStmt(util::mkptr(new grammar::ReturnNothing(pos)));
     grammar::BranchAlterOnly(
                 pos, util::mkptr(new grammar::BoolLiteral(pos, true)), std::move(block1))
-        .compile(*filter, grammar::ExprReducingEnv());
+        .compile(*filter);
 
     grammar::Block block2;
     block2.addStmt(util::mkptr(new grammar::Arithmetics(
@@ -125,11 +124,11 @@ TEST_F(StmtNodesTest, Branch)
     grammar::Block block3;
     block3.addStmt(util::mkptr(new grammar::Return(
                             pos, util::mkptr(new grammar::Identifier(pos, "betsuni")))));
-    grammar::Branch(pos
-                  , util::mkptr(new grammar::BoolLiteral(pos, false))
-                  , std::move(block2)
-                  , std::move(block3))
-        .compile(*filter, grammar::ExprReducingEnv());
+    grammar::Branch branch1(pos
+                          , util::mkptr(new grammar::BoolLiteral(pos, false))
+                          , std::move(block2));
+    branch1.acceptElse(pos, std::move(block3));
+    branch1.compile(*filter);
     filter->deliver().compile(semantic::CompilingSpace());
     ASSERT_FALSE(error::hasError());
 

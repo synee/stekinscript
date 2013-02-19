@@ -77,12 +77,15 @@ NodeType const test::THIS("this");
 NodeType const test::LIST_BEGIN("list begin");
 NodeType const test::LIST_END("list end");
 
-NodeType const test::BINARY_OP("binary operation");
+NodeType const test::UNDEFINED("undefined");
 NodeType const test::PRE_UNARY_OP("prefix unary operation");
+NodeType const test::BINARY_OP("binary operation");
+NodeType const test::CONDITIONAL("conditional expression");
 NodeType const test::OPERAND("operand");
 NodeType const test::PIPE_ELEMENT("pipe element");
 NodeType const test::PIPE_INDEX("pipe index");
 NodeType const test::PIPE_KEY("pipe key");
+NodeType const test::PIPE_RESULT("pipe result");
 
 NodeType const test::CALL_BEGIN("call begin");
 NodeType const test::CALL_END("call end");
@@ -93,7 +96,6 @@ NodeType const test::ASYNC_CALL("asynchronous call");
 
 NodeType const test::LIST_SLICE_BEGIN("list slice begin");
 NodeType const test::LIST_SLICE_END("list slice end");
-NodeType const test::LIST_SLICE_DEFAULT("list slice default");
 
 NodeType const test::DICT_BEGIN("dictionary begin");
 NodeType const test::DICT_END("dictionary end");

@@ -15,6 +15,8 @@ namespace semantic {
         virtual ~SymbolTable() {}
 
         virtual void defName(misc::position const& pos, std::string const& name) = 0;
+        virtual void defFunc(misc::position const& pos, std::string const& name) = 0;
+        virtual void defParam(misc::position const& pos, std::string const& name) = 0;
         virtual void defAsyncParam(misc::position const& pos, std::string const& name) = 0;
         virtual void defConst(misc::position const& pos
                             , std::string const& name
@@ -27,6 +29,8 @@ namespace semantic {
         virtual util::sptr<output::Expression const> compileRef(misc::position const& pos
                                                               , std::string const& name) = 0;
         virtual void checkDefinition(misc::position const& pos, std::string const& name) const = 0;
+
+        virtual std::set<std::string> localNames() const = 0;
     };
 
     struct BaseCompilingSpace {
@@ -44,13 +48,14 @@ namespace semantic {
         util::sref<SymbolTable> sym();
         util::sref<output::Block> block() const;
 
+        virtual bool inPipe() const = 0;
+
         void setAsyncSpace(misc::position const& pos
                          , std::vector<std::string> const& params
                          , util::sref<output::Block> block);
         void setAsyncSpace(util::sref<output::Block> block);
         virtual void referenceThis() = 0;
 
-        virtual util::sptr<output::Statement const> compileRet();
         virtual util::sptr<output::Statement const> compileRet(
                                             util::sptr<Expression const> const& val);
 
@@ -74,6 +79,8 @@ namespace semantic {
             , _this_referenced(rhs._this_referenced)
         {}
 
+        bool inPipe() const { return false; }
+
         void referenceThis();
         util::sptr<output::Block> deliver();
     private:
@@ -85,12 +92,32 @@ namespace semantic {
     {
         explicit PipelineSpace(BaseCompilingSpace& ext_space);
 
+        bool inPipe() const { return true; }
+
         void referenceThis();
-        util::sptr<output::Statement const> compileRet();
-        util::sptr<output::Statement const> compileRet(util::sptr<Expression const> const& val);
-        util::sptr<output::Block> deliver();
     private:
         BaseCompilingSpace& _ext_space;
+    };
+
+    struct SyncPipelineSpace
+        : PipelineSpace
+    {
+        explicit SyncPipelineSpace(BaseCompilingSpace& ext_space)
+            : PipelineSpace(ext_space)
+        {}
+
+        util::sptr<output::Statement const> compileRet(util::sptr<Expression const> const& val);
+    };
+
+    struct AsyncPipelineSpace
+        : PipelineSpace
+    {
+        explicit AsyncPipelineSpace(BaseCompilingSpace& ext_space)
+            : PipelineSpace(ext_space)
+        {}
+
+        util::sptr<output::Statement const> compileRet(util::sptr<Expression const> const& val);
+        util::sptr<output::Block> deliver();
     };
 
     struct SubCompilingSpace
@@ -98,8 +125,9 @@ namespace semantic {
     {
         explicit SubCompilingSpace(BaseCompilingSpace& ext_space);
 
+        bool inPipe() const;
+
         void referenceThis();
-        util::sptr<output::Statement const> compileRet();
         util::sptr<output::Statement const> compileRet(util::sptr<Expression const> const& val);
     private:
         BaseCompilingSpace& _ext_space;

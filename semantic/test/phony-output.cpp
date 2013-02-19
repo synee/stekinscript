@@ -12,9 +12,23 @@
 using namespace test;
 using namespace output;
 
+static void writeList(util::ptrarr<Expression const> const& list)
+{
+    list.iter([&](util::sptr<Expression const> const& member, int)
+              {
+                  member->str();
+              });
+}
+
 void Block::write(std::ostream&) const
 {
     DataTree::actualOne()(SCOPE_BEGIN);
+    std::for_each(_local_decls.begin()
+                , _local_decls.end()
+                , [&](std::string const& s)
+                  {
+                      DataTree::actualOne()(FWD_DECL, s);
+                  });
     _funcs.iter([&](util::sptr<Function const> const& func, int)
                 {
                     func->write(dummyos());
@@ -42,27 +56,70 @@ void Block::append(util::sptr<Block> b)
     _funcs.append(std::move(b->_funcs));
 }
 
+void Block::setLocalDecls(std::set<std::string> const& decls)
+{
+    _local_decls = decls;
+}
+
 void Function::write(std::ostream&) const
 {
-    DataTree::actualOne()(pos, FUNC_DECL, name, param_names.size());
-    std::for_each(param_names.begin()
-                , param_names.end()
+    std::vector<std::string> params(parameters());
+    DataTree::actualOne()(FUNCTION, mangledName(), params.size());
+    std::for_each(params.begin()
+                , params.end()
                 , [&](std::string const& pn)
                   {
                       DataTree::actualOne()(PARAMETER, pn);
                   });
-    body->write(dummyos());
+    body()->write(dummyos());
+}
+
+util::sref<Statement const> RegularFunction::body() const
+{
+    return *body_stmt;
+}
+
+std::string RegularFunction::mangledName() const
+{
+    return name;
+}
+
+std::vector<std::string> RegularFunction::parameters() const
+{
+    return params;
+}
+
+util::sref<Statement const> ConditionalCallback::body() const
+{
+    return *_body;
+}
+
+std::string ConditionalCallback::mangledName() const
+{
+    return "# ConditionalCallback";
+}
+
+std::vector<std::string> ConditionalCallback::parameters() const
+{
+    return std::vector<std::string>({ "ConditionalCallback # Parameter" });
+}
+
+util::sref<Block> ConditionalCallback::bodyFlow()
+{
+    return *_body;
+}
+
+std::string FunctionInvocation::str() const
+{
+    DataTree::actualOne()(pos, FUNC_INVOKE, args.size());
+    writeList(args);
+    return "";
 }
 
 void Return::write(std::ostream&) const
 {
     DataTree::actualOne()(RETURN);
     ret_val->str();
-}
-
-void ReturnNothing::write(std::ostream&) const
-{
-    DataTree::actualOne()(RETURN_NOTHING);
 }
 
 void Export::write(std::ostream&) const
@@ -127,6 +184,12 @@ void PipelineContinue::write(std::ostream&) const
     DataTree::actualOne()(PIPELINE_CONTINUE);
 }
 
+std::string Undefined::str() const
+{
+    DataTree::actualOne()(pos, UNDEFINED);
+    return "";
+}
+
 std::string Expression::strAsProp() const
 {
     return str();
@@ -161,14 +224,6 @@ std::string StringLiteral::str() const
     return "";
 }
 
-static void writeList(util::ptrarr<Expression const> const& list)
-{
-    list.iter([&](util::sptr<Expression const> const& member, int)
-              {
-                  member->str();
-              });
-}
-
 std::string ListLiteral::str() const
 {
     DataTree::actualOne()(pos, LIST, value.size());
@@ -191,6 +246,12 @@ std::string PipeIndex::str() const
 std::string PipeKey::str() const
 {
     DataTree::actualOne()(pos, PIPE_KEY);
+    return "";
+}
+
+std::string PipeResult::str() const
+{
+    DataTree::actualOne()(pos, PIPE_RESULT);
     return "";
 }
 
@@ -248,12 +309,6 @@ std::string ListSlice::str() const
     return "";
 }
 
-std::string ListSlice::Default::str() const
-{
-    DataTree::actualOne()(pos, LIST_SLICE_DEFAULT);
-    return "";
-}
-
 std::string Dictionary::str() const
 {
     DataTree::actualOne()(pos, DICT_BEGIN);
@@ -284,13 +339,16 @@ std::string PreUnaryOp::str() const
 
 std::string Lambda::str() const
 {
-    DataTree::actualOne()(pos, FUNC_DECL, param_names.size());
+    DataTree::actualOne()(pos, FUNCTION, param_names.size());
     std::for_each(param_names.begin()
                 , param_names.end()
                 , [&](std::string const& pn)
                   {
                       DataTree::actualOne()(PARAMETER, pn);
                   });
+    if (copy_decls) {
+        DataTree::actualOne()(COPY_PARAM_DECL);
+    }
     body->write(dummyos());
     return "";
 }
@@ -298,6 +356,15 @@ std::string Lambda::str() const
 std::string This::str() const
 {
     DataTree::actualOne()(pos, THIS);
+    return "";
+}
+
+std::string Conditional::str() const
+{
+    DataTree::actualOne()(pos, CONDITIONAL);
+    predicate->str();
+    consequence->str();
+    alternative->str();
     return "";
 }
 

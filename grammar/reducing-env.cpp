@@ -4,11 +4,6 @@
 
 using namespace grammar;
 
-bool ArgReducingEnv::inPipe() const
-{
-    return _external_env.inPipe();
-}
-
 void ArgReducingEnv::setAsync(
             misc::position const& pos, int index, std::vector<std::string> const& ap)
 {

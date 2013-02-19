@@ -35,6 +35,36 @@ namespace grammar {
         std::string _cache_pipe_op;
     };
 
+    struct ConditionalAutomation
+        : AutomationBase
+    {
+        ConditionalAutomation()
+            : _before_if(true)
+            , _cache_consq(nullptr)
+            , _before_else(true)
+            , _cache_pred(nullptr)
+        {}
+
+        void activated(AutomationStack& stack);
+        void pushPipeSep(AutomationStack& stack, Token const& token);
+        void matchClosing(AutomationStack& stack, Token const& closer);
+        void pushColon(AutomationStack& stack, misc::position const& pos);
+        void pushPropertySeparator(AutomationStack& stack, misc::position const& pos);
+        void pushComma(AutomationStack& stack, misc::position const& pos);
+        void pushIf(AutomationStack& stack, misc::position const& pos);
+        void pushElse(AutomationStack& stack, misc::position const& pos);
+        void accepted(AutomationStack& stack, util::sptr<Expression const> expr);
+        bool finishOnBreak(bool sub_empty) const;
+        void finish(ClauseStackWrapper& wrapper, AutomationStack& stack, misc::position const& pos);
+    private:
+        void _forceReduce(AutomationStack& stack);
+
+        bool _before_if;
+        util::sptr<Expression const> _cache_consq;
+        bool _before_else;
+        util::sptr<Expression const> _cache_pred;
+    };
+
     struct ArithAutomation
         : AutomationBase
     {
@@ -51,9 +81,11 @@ namespace grammar {
         void pushColon(AutomationStack& stack, misc::position const& pos);
         void pushPropertySeparator(AutomationStack& stack, misc::position const& pos);
         void pushComma(AutomationStack& stack, misc::position const& pos);
+        void pushIf(AutomationStack& stack, misc::position const& pos);
+        void pushElse(AutomationStack& stack, misc::position const& pos);
         void accepted(AutomationStack&, util::sptr<Expression const> expr);
         void accepted(AutomationStack&, std::vector<util::sptr<Expression const>> list);
-        bool finishOnBreak(bool) const;
+        bool finishOnBreak(bool sub_empty) const;
         void finish(ClauseStackWrapper&, AutomationStack& stack, misc::position const&);
 
         ArithAutomation();

@@ -29,13 +29,9 @@ namespace grammar {
                        , misc::position const& pos
                        , std::string const& name
                        , std::vector<std::string> const& params);
-        void addIf(int indent_len
-                 , misc::position const& pos
-                 , std::vector<util::sptr<Token>> const& sequence);
         void addIfnot(int indent_len
                     , misc::position const& pos
                     , std::vector<util::sptr<Token>> const& sequence);
-        void addElse(int indent_len, misc::position const& pos);
 
         semantic::Block buildAndClear();
     private:
@@ -44,7 +40,7 @@ namespace grammar {
         void _pushSequence(misc::position const& pos
                          , std::vector<util::sptr<Token>> const& sequence);
 
-        Block _global;
+        Block* _global;
         std::vector<util::sptr<ClauseBase>> _clauses;
     };
 

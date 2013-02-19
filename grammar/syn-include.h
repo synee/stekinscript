@@ -14,5 +14,6 @@
 #include "expr-automations.h"
 #include "expr-nodes.h"
 #include "expr-tokens.h"
+#include "stmt-tokens.h"
 
 #endif /* __STEKIN_GRAMMAR_SYN_INCLUDE_H__ */

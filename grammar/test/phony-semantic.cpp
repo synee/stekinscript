@@ -339,6 +339,12 @@ util::sptr<output::Expression const> PipeKey::compile(BaseCompilingSpace&) const
     return nulOutputExpr();
 }
 
+util::sptr<output::Expression const> PipeResult::compile(BaseCompilingSpace&) const
+{
+    DataTree::actualOne()(pos, PIPE_RESULT);
+    return nulOutputExpr();
+}
+
 util::sptr<output::Expression const> ListAppend::compile(BaseCompilingSpace&) const
 {
     DataTree::actualOne()(pos, BINARY_OP, "[ ++ ]")(pos, OPERAND);
@@ -387,9 +393,9 @@ util::sptr<output::Expression const> ListSlice::compile(BaseCompilingSpace&) con
     return nulOutputExpr();
 }
 
-util::sptr<output::Expression const> ListSlice::Default::compile(BaseCompilingSpace&) const
+util::sptr<output::Expression const> Undefined::compile(BaseCompilingSpace&) const
 {
-    DataTree::actualOne()(pos, LIST_SLICE_DEFAULT);
+    DataTree::actualOne()(pos, UNDEFINED);
     return nulOutputExpr();
 }
 
@@ -445,6 +451,17 @@ util::sptr<output::Expression const> This::compile(BaseCompilingSpace&) const
     return nulOutputExpr();
 }
 
+util::sptr<output::Expression const> Conditional::compile(BaseCompilingSpace&) const
+{
+    DataTree::actualOne()(pos, CONDITIONAL)(pos, OPERAND);
+    predicate->compile(nulSpace());
+    DataTree::actualOne()(pos, OPERAND);
+    consequence->compile(nulSpace());
+    DataTree::actualOne()(pos, OPERAND);
+    alternative->compile(nulSpace());
+    return nulOutputExpr();
+}
+
 util::sptr<output::Expression const> Pipeline::compile(BaseCompilingSpace&) const
 {
     DataTree::actualOne()(pos, BINARY_OP, "[ pipeline ]")(pos, OPERAND);
@@ -473,11 +490,6 @@ BaseCompilingSpace::BaseCompilingSpace(util::sptr<SymbolTable>)
     , _main_block(nullptr)
     , _current_block(nullptr)
 {}
-
-util::sptr<output::Statement const> BaseCompilingSpace::compileRet()
-{
-    return util::sptr<output::Statement const>(nullptr);
-}
 
 util::sptr<output::Statement const> BaseCompilingSpace::compileRet(
                                             util::sptr<Expression const> const&)
@@ -542,3 +554,10 @@ bool NameDef::isAsync() const { return false; }
 bool Return::isAsync() const { return false; }
 bool Export::isAsync() const { return false; }
 bool AttrSet::isAsync() const { return false; }
+bool Conditional::isLiteral(util::sref<SymbolTable const>) const { return false; }
+std::string Conditional::literalType(util::sref<SymbolTable const>) const { return ""; }
+bool Conditional::boolValue(util::sref<SymbolTable const>) const { return false; }
+mpz_class Conditional::intValue(util::sref<SymbolTable const>) const { return 0; }
+mpf_class Conditional::floatValue(util::sref<SymbolTable const>) const { return 0; }
+std::string Conditional::stringValue(util::sref<SymbolTable const>) const { return ""; }
+bool Conditional::isAsync() const { return false; }

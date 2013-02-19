@@ -1,4 +1,5 @@
 #include <output/block.h>
+#include <output/function.h>
 #include <report/errors.h>
 #include <report/warnings.h>
 

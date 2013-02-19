@@ -9,6 +9,6 @@ using namespace semantic;
 
 util::sptr<output::Function const> Function::compile(util::sref<SymbolTable> st) const
 {
-    return util::mkptr(new output::Function(
-                    pos, name, param_names, body.compile(CompilingSpace(pos, st, param_names))));
+    return util::mkptr(new output::RegularFunction(
+                    name, param_names, body.compile(CompilingSpace(pos, st, param_names))));
 }

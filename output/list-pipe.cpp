@@ -15,15 +15,14 @@ static std::string const ASYNC_MAPPER_CONTINUE(
 "return $next($index + 1, $result);\n"
 );
 
-static std::string const ASYNC_MAPPER_RETURN(
-"$result.push(#EXPRESSION);\n"
-+ ASYNC_MAPPER_CONTINUE
+static std::string const SYNC_PIPELINE_RETURN(
+"return [1, #EXPRESSION];\n"
 );
 
 void PipelineReturn::write(std::ostream& os) const
 {
     os << util::replace_all(
-            ASYNC_MAPPER_RETURN
+            SYNC_PIPELINE_RETURN
                 , "#EXPRESSION", expr->str());
 }
 
@@ -70,14 +69,19 @@ static std::string const SYNC_PIPE(
 "    if (!($list)) return;\n"
 "    var $result = [];\n"
 "    var $ind = 0;\n"
-"    var $next = function() {};"
+"    var $next = function() {};\n"
+"    var $pipeRet;\n"
 "    for (var $k in $list) {\n"
 "        if ($ind === $list.length) {\n"
 "            break;\n"
 "        }\n"
-"        (function ($index, $key, $element) {\n"
-"           #SECTION;\n"
+"        $pipeRet = (function ($index, $key, $element) {\n"
+"           #SECTION\n"
+"           return [0];\n"
 "        })($ind, $k, $list[$k]);\n"
+"        switch ($pipeRet[0]) {\n"
+"            case 1: return $pipeRet[1];\n"
+"        }\n"
 "        ++$ind;\n"
 "    }\n"
 "    return $result;\n"
@@ -95,4 +99,24 @@ std::string SyncPipeline::str() const
                 , "#SECTION", sec_os.str())
                 , "#LIST", list->str())
         );
+}
+
+std::string PipeElement::str() const
+{
+    return "$element";
+}
+
+std::string PipeIndex::str() const
+{
+    return "$index";
+}
+
+std::string PipeKey::str() const
+{
+    return "$key";
+}
+
+std::string PipeResult::str() const
+{
+    return "$result";
 }

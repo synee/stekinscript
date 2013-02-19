@@ -74,14 +74,6 @@ namespace output {
         void write(std::ostream& os) const;
     };
 
-    struct ReturnNothing
-        : Statement
-    {
-        ReturnNothing() = default;
-
-        void write(std::ostream& os) const;
-    };
-
     struct Export
         : Statement
     {

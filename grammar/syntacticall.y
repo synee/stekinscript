@@ -8,8 +8,8 @@
 
     grammar::Ident* ident_type;
     grammar::NameList* names_type;
-    grammar::TokenSequence* expr_seq_type;
-    grammar::Token* expr_token_type;
+    grammar::TokenSequence* token_sequence_type;
+    grammar::Token* token_type;
 }
 
 %type <indent_type> indent
@@ -23,8 +23,8 @@
 %type <names_type> param_list
 %type <names_type> member_name
 
-%type <expr_token_type> expr_token
-%type <expr_seq_type> expr_sequence
+%type <token_type> token
+%type <token_sequence_type> token_sequence
 
 %token INDENT EOL
 %token KW_FUNC KW_IF KW_IFNOT KW_ELSE KW_RETURN KW_IMPORT KW_EXPORT KW_RESERVED
@@ -32,7 +32,7 @@
 %token BOOL_TRUE BOOL_FALSE
 %token INT_LITERAL DOUBLE_LITERAL STRING_LITERAL TRIPLE_QUOTED_STRING_LITERAL
 %token IDENT
-%token PIPE_ELEMENT PIPE_INDEX PIPE_KEY
+%token PIPE_ELEMENT PIPE_INDEX PIPE_KEY PIPE_RESULT
 
 %%
 
@@ -80,22 +80,18 @@ stmt:
 clue:
     func_clue {}
     |
-    if_clue {}
-    |
     ifnot_clue {}
-    |
-    else_clue {}
 ;
 
 arithmetics:
-    indent expr_sequence eol
+    indent token_sequence eol
     {
         grammar::builder.addArith($1, misc::position($3), $2->deliver());
     }
 ;
 
 func_return:
-    indent KW_RETURN expr_sequence eol
+    indent KW_RETURN token_sequence eol
     {
         grammar::builder.addReturn($1, misc::position($4), $3->deliver());
     }
@@ -115,7 +111,7 @@ import:
 ;
 
 export:
-    indent KW_EXPORT member_name ':' expr_sequence eol
+    indent KW_EXPORT member_name ':' token_sequence eol
     {
         std::vector<std::string> names = $3->deliver();
         if (names.size() == 1) {
@@ -144,19 +140,29 @@ func_clue:
     }
 ;
 
-expr_sequence:
-    expr_sequence expr_token
+token_sequence:
+    token_sequence token
     {
         $$ = $1->add($2);
     }
     |
-    expr_token
+    token
     {
         $$ = new grammar::TokenSequence($1);
     }
 ;
 
-expr_token:
+token:
+    KW_IF
+    {
+        $$ = new grammar::IfToken(grammar::here());
+    }
+    |
+    KW_ELSE
+    {
+        $$ = new grammar::ElseToken(grammar::here());
+    }
+    |
     OPERATOR
     {
         $$ = new grammar::OpToken(grammar::here(), yytext);
@@ -244,6 +250,12 @@ expr_token:
         $$ = new grammar::FactorToken(here, util::mkptr(new grammar::PipeKey(here)), yytext);
     }
     |
+    PIPE_RESULT
+    {
+        misc::position here(grammar::here());
+        $$ = new grammar::FactorToken(here, util::mkptr(new grammar::PipeResult(here)), yytext);
+    }
+    |
     '('
     {
         $$ = new grammar::OpenParenToken(grammar::here());
@@ -319,24 +331,10 @@ param_list:
     }
 ;
 
-if_clue:
-    indent KW_IF expr_sequence eol
-    {
-        grammar::builder.addIf($1, misc::position($4), $3->deliver());
-    }
-;
-
 ifnot_clue:
-    indent KW_IFNOT expr_sequence eol
+    indent KW_IFNOT token_sequence eol
     {
         grammar::builder.addIfnot($1, misc::position($4), $3->deliver());
-    }
-;
-
-else_clue:
-    indent KW_ELSE eol
-    {
-        grammar::builder.addElse($1, misc::position($3));
     }
 ;
 

@@ -81,6 +81,7 @@ TEST_F(FilterTest, Filter)
 
     DataTree::expectOne()
         (SCOPE_BEGIN)
+            (FWD_DECL, "iwasaki")
             (ARITHMETICS)
                 (pos, BOOLEAN, "true")
             (NAME_DEF, "iwasaki")
@@ -97,7 +98,8 @@ TEST_F(FilterTest, Filter)
                 (ARITHMETICS)
                     (pos_alter, REFERENCE, "hiyori")
             (SCOPE_END)
-            (RETURN_NOTHING)
+            (RETURN)
+                (pos, UNDEFINED)
         (SCOPE_END)
     ;
 }
@@ -226,7 +228,8 @@ TEST_F(FilterTest, TwoPathBranchFoldedOnFalse)
                 (ARITHMETICS)
                     (pos_alter, REFERENCE, "narumi")
             (SCOPE_END)
-            (RETURN_NOTHING)
+            (RETURN)
+                (pos, UNDEFINED)
         (SCOPE_END)
     ;
 }
@@ -265,7 +268,8 @@ TEST_F(FilterTest, TwoPathBranchFoldedOnTrue)
             (ARITHMETICS)
                 (pos_consq, REFERENCE, "yui")
             (SCOPE_END)
-            (RETURN_NOTHING)
+            (RETURN)
+                (pos, UNDEFINED)
         (SCOPE_END)
     ;
 }
@@ -299,7 +303,8 @@ TEST_F(FilterTest, IfNotFoldedOnFalse)
                 (ARITHMETICS)
                     (pos_alter, REFERENCE, "narumi")
             (SCOPE_END)
-            (RETURN_NOTHING)
+            (RETURN)
+                (pos, UNDEFINED)
         (SCOPE_END)
     ;
 }
@@ -331,7 +336,8 @@ TEST_F(FilterTest, IfNotFoldedOnTrue)
         (SCOPE_BEGIN)
             (SCOPE_BEGIN)
             (SCOPE_END)
-            (RETURN_NOTHING)
+            (RETURN)
+                (pos, UNDEFINED)
         (SCOPE_END)
     ;
 }

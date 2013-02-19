@@ -51,10 +51,15 @@ TEST_F(PipelinesTest, AsyncPipeTopExpression)
                         (ASYNC_RESULT_DEF)
                         (pos, CALL, 1)
                             (pos, REFERENCE, "f")
-                            (pos, FUNC_DECL, 0)
+                            (pos, FUNCTION, 0)
+                                (COPY_PARAM_DECL)
                                 (SCOPE_BEGIN)
-                                    (PIPELINE_RETURN)
-                                        (pos, ASYNC_REFERENCE)
+                                    (ARITHMETICS)
+                                        (pos, CALL, 1)
+                                            (pos, BINARY_OP, ".")
+                                                (pos, PIPE_RESULT)
+                                                (pos, REFERENCE, "push")
+                                            (pos, ASYNC_REFERENCE)
                                     (PIPELINE_CONTINUE)
                                 (SCOPE_END)
                     (SCOPE_END)
@@ -107,16 +112,22 @@ TEST_F(PipelinesTest, AsyncPipeNestedExpression)
                 (pos, ASYNC_PIPELINE)
                     (pos, REFERENCE, "list")
                     (SCOPE_BEGIN)
+                        (FWD_DECL, "h")
                         (ASYNC_RESULT_DEF)
                         (pos, CALL, 1)
                             (pos, REFERENCE, "g")
-                            (pos, FUNC_DECL, 1)
+                            (pos, FUNCTION, 1)
                                 (PARAMETER, "h")
+                                (COPY_PARAM_DECL)
                                 (SCOPE_BEGIN)
-                                    (PIPELINE_RETURN)
+                                    (ARITHMETICS)
                                         (pos, CALL, 1)
-                                            (pos, REFERENCE, "f")
-                                            (pos, ASYNC_REFERENCE)
+                                            (pos, BINARY_OP, ".")
+                                                (pos, PIPE_RESULT)
+                                                (pos, REFERENCE, "push")
+                                            (pos, CALL, 1)
+                                                (pos, REFERENCE, "f")
+                                                (pos, ASYNC_REFERENCE)
                                     (PIPELINE_CONTINUE)
                                 (SCOPE_END)
                     (SCOPE_END)
@@ -202,13 +213,13 @@ TEST_F(PipelinesTest, PipeBlock)
                 (pos, SYNC_PIPELINE)
                     (pos, REFERENCE, "merin")
                     (SCOPE_BEGIN)
+                        (FWD_DECL, "scarlet")
                         (NAME_DEF, "scarlet")
                             (pos, REFERENCE, "sakuya")
                         (PIPELINE_RETURN)
                             (pos, CALL, 1)
                                 (pos, REFERENCE, "scarlet")
                                 (pos, INTEGER, "20130204")
-                        (PIPELINE_CONTINUE)
                     (SCOPE_END)
             (ARITHMETICS)
                 (pos, REFERENCE, "merin")
@@ -236,7 +247,7 @@ TEST_F(PipelinesTest, PipeAsyncBlock)
                                   , util::ptrarr<semantic::Expression const>()
                                   , std::vector<std::string>({ "scarlet" })
                                   , util::ptrarr<semantic::Expression const>())))));
-    pipe_sec.addStmt(util::mkptr(new semantic::Return(
+    pipe_sec.addStmt(util::mkptr(new semantic::Arithmetics(
                     pos, util::mkptr(new semantic::Reference(pos, "scarlet")))));
     filter.addArith(pos, util::mkptr(new semantic::Pipeline(
                     pos, util::mkptr(new semantic::Reference(pos, "merin")), std::move(pipe_sec))));
@@ -251,15 +262,17 @@ TEST_F(PipelinesTest, PipeAsyncBlock)
                 (pos, ASYNC_PIPELINE)
                     (pos, REFERENCE, "merin")
                     (SCOPE_BEGIN)
+                        (FWD_DECL, "scarlet")
                         (ASYNC_RESULT_DEF)
                             (pos, CALL, 1)
                                 (pos, REFERENCE, "sakuya")
-                                (pos, FUNC_DECL, 1)
+                                (pos, FUNCTION, 1)
                                     (PARAMETER, "scarlet")
+                                    (COPY_PARAM_DECL)
                                     (SCOPE_BEGIN)
                                         (ARITHMETICS)
                                             (pos, ASYNC_REFERENCE)
-                                        (PIPELINE_RETURN)
+                                        (ARITHMETICS)
                                             (pos, REFERENCE, "scarlet")
                                         (PIPELINE_CONTINUE)
                                     (SCOPE_END)
@@ -272,4 +285,36 @@ TEST_F(PipelinesTest, PipeAsyncBlock)
                     (SCOPE_END)
         (SCOPE_END)
     ;
+}
+
+TEST_F(PipelinesTest, PipeAsyncReturnInSyncContext)
+{
+    misc::position pos(5);
+    misc::position pos_a(500);
+    semantic::CompilingSpace space;
+    semantic::Filter filter;
+    util::ptrarr<semantic::Expression const> args;
+
+    space.sym()->defName(pos, "marisa");
+    space.sym()->defName(pos, "reimu");
+
+    semantic::Block pipe_sec;
+
+    args.append(util::mkptr(new semantic::IntLiteral(pos, 1654)));
+    pipe_sec.addStmt(util::mkptr(new semantic::Return(
+                    pos, util::mkptr(new semantic::AsyncCall(
+                                    pos_a
+                                  , util::mkptr(new semantic::Reference(pos, "marisa"))
+                                  , util::ptrarr<semantic::Expression const>()
+                                  , std::vector<std::string>({ "x" })
+                                  , util::ptrarr<semantic::Expression const>())))));
+    filter.addArith(pos, util::mkptr(new semantic::Pipeline(
+                    pos, util::mkptr(new semantic::Reference(pos, "reimu")), std::move(pipe_sec))));
+
+    compile(filter, space.sym());
+    ASSERT_TRUE(error::hasError());
+
+    std::vector<ReturnNotSyncRec> recs(getReturnNotSyncRecs());
+    ASSERT_EQ(1, recs.size());
+    ASSERT_EQ(pos_a, recs[0].pos);
 }

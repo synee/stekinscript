@@ -10,6 +10,16 @@
 
 namespace semantic {
 
+    struct Undefined
+        : Expression
+    {
+        explicit Undefined(misc::position const& pos)
+            : Expression(pos)
+        {}
+
+        util::sptr<output::Expression const> compile(BaseCompilingSpace&) const;
+    };
+
     struct PreUnaryOp
         : Expression
     {
@@ -183,36 +193,6 @@ namespace semantic {
         util::ptrarr<Expression const> const value;
     };
 
-    struct PipeElement
-        : Expression
-    {
-        explicit PipeElement(misc::position const& pos)
-            : Expression(pos)
-        {}
-
-        util::sptr<output::Expression const> compile(BaseCompilingSpace&) const;
-    };
-
-    struct PipeIndex
-        : Expression
-    {
-        explicit PipeIndex(misc::position const& pos)
-            : Expression(pos)
-        {}
-
-        util::sptr<output::Expression const> compile(BaseCompilingSpace&) const;
-    };
-
-    struct PipeKey
-        : Expression
-    {
-        explicit PipeKey(misc::position const& pos)
-            : Expression(pos)
-        {}
-
-        util::sptr<output::Expression const> compile(BaseCompilingSpace&) const;
-    };
-
     struct ListAppend
         : Expression
     {
@@ -288,16 +268,6 @@ namespace semantic {
     struct ListSlice
         : Expression
     {
-        struct Default
-            : Expression
-        {
-            explicit Default(misc::position const& pos)
-                : Expression(pos)
-            {}
-
-            util::sptr<output::Expression const> compile(BaseCompilingSpace&) const;
-        };
-
         ListSlice(misc::position const& pos
                 , util::sptr<Expression const> ls
                 , util::sptr<Expression const> b
@@ -380,6 +350,37 @@ namespace semantic {
         {}
 
         util::sptr<output::Expression const> compile(BaseCompilingSpace& space) const;
+    };
+
+    struct Conditional
+        : Expression
+    {
+        Conditional(misc::position const& pos
+                  , util::sptr<Expression const> p
+                  , util::sptr<Expression const> c
+                  , util::sptr<Expression const> a)
+            : Expression(pos)
+            , predicate(std::move(p))
+            , consequence(std::move(c))
+            , alternative(std::move(a))
+        {}
+
+        util::sptr<output::Expression const> compile(BaseCompilingSpace& space) const;
+        bool isLiteral(util::sref<SymbolTable const> sym) const;
+        std::string literalType(util::sref<SymbolTable const> sym) const;
+        bool boolValue(util::sref<SymbolTable const> sym) const;
+        mpz_class intValue(util::sref<SymbolTable const> sym) const;
+        mpf_class floatValue(util::sref<SymbolTable const> sym) const;
+        std::string stringValue(util::sref<SymbolTable const> sym) const;
+        bool isAsync() const;
+
+        util::sptr<Expression const> const predicate;
+        util::sptr<Expression const> const consequence;
+        util::sptr<Expression const> const alternative;
+    private:
+        util::sref<Expression const> _equivVal(util::sref<SymbolTable const> sym) const;
+        util::sptr<output::Expression const> _compileSync(BaseCompilingSpace& space) const;
+        util::sptr<output::Expression const> _compileAsync(BaseCompilingSpace& space) const;
     };
 
 }
