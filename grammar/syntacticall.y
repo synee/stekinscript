@@ -155,32 +155,32 @@ token_sequence:
 token:
     KW_IF
     {
-        $$ = new grammar::IfToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::IF);
     }
     |
     KW_ELSE
     {
-        $$ = new grammar::ElseToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::ELSE);
     }
     |
     OPERATOR
     {
-        $$ = new grammar::OpToken(grammar::here(), yytext);
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::OPERATOR);
     }
     |
     '.'
     {
-        $$ = new grammar::OpToken(grammar::here(), yytext);
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::OPERATOR);
     }
     |
     PIPE_SEP
     {
-        $$ = new grammar::PipeSepToken(grammar::here(), yytext);
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::PIPE_SEP);
     }
     |
     PROP_SEP
     {
-        $$ = new grammar::PropertySeparatorToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::PROP_SEP);
     }
     |
     BOOL_TRUE
@@ -258,47 +258,47 @@ token:
     |
     '('
     {
-        $$ = new grammar::OpenParenToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::OPEN_PAREN);
     }
     |
     '['
     {
-        $$ = new grammar::OpenBracketToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::OPEN_BRACKET);
     }
     |
     '{'
     {
-        $$ = new grammar::OpenBraceToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::OPEN_BRACE);
     }
     |
     '}'
     {
-        $$ = new grammar::CloserToken(grammar::here(), "}");
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::CLOSE_BRACE);
     }
     |
     ']'
     {
-        $$ = new grammar::CloserToken(grammar::here(), "]");
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::CLOSE_BRACKET);
     }
     |
     ')'
     {
-        $$ = new grammar::CloserToken(grammar::here(), ")");
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::CLOSE_PAREN);
     }
     |
     ':'
     {
-        $$ = new grammar::ColonToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::COLON);
     }
     |
     ','
     {
-        $$ = new grammar::CommaToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::COMMA);
     }
     |
     '@'
     {
-        $$ = new grammar::ThisToken(grammar::here());
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::THIS);
     }
 ;
 

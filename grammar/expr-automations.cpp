@@ -19,41 +19,20 @@ static void checkEmptyExpr(util::sref<Expression const> expr)
     }
 }
 
+PipelineAutomation::PipelineAutomation()
+    : _cache_list(nullptr)
+    , _cache_section(nullptr)
+{
+    _setFollowings({ COMMA, COLON, PROP_SEP, CLOSE_PAREN, CLOSE_BRACKET, CLOSE_BRACE });
+    _actions[PIPE_SEP] = [&](AutomationStack& stack, Token const& token)
+                         {
+                             _pushPipeSep(stack, token);
+                         };
+}
+
 void PipelineAutomation::activated(AutomationStack& stack)
 {
     stack.push(util::mkptr(new ConditionalAutomation));
-}
-
-void PipelineAutomation::pushPipeSep(AutomationStack& stack, Token const& token)
-{
-    _tryReducePipe();
-    _cache_op_pos = token.pos;
-    _cache_pipe_op = token.image;
-    stack.push(util::mkptr(new ConditionalAutomation));
-}
-
-void PipelineAutomation::matchClosing(AutomationStack& stack, Token const& closer)
-{
-    _reduce(stack);
-    stack.top()->matchClosing(stack, closer);
-}
-
-void PipelineAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
-{
-    _reduce(stack);
-    stack.top()->pushColon(stack, pos);
-}
-
-void PipelineAutomation::pushPropertySeparator(AutomationStack& stack, misc::position const& pos)
-{
-    _reduce(stack);
-    stack.top()->pushPropertySeparator(stack, pos);
-}
-
-void PipelineAutomation::pushComma(AutomationStack& stack, misc::position const& pos)
-{
-    _reduce(stack);
-    stack.top()->pushComma(stack, pos);
 }
 
 void PipelineAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)
@@ -104,6 +83,20 @@ void PipelineAutomation::_tryReducePipe()
                 _cache_op_pos, std::move(_cache_list), _cache_pipe_op, std::move(_cache_section)));
 }
 
+bool PipelineAutomation::_reduce(AutomationStack& stack, Token const&)
+{
+    _reduce(stack);
+    return true;
+}
+
+void PipelineAutomation::_pushPipeSep(AutomationStack& stack, Token const& token)
+{
+    _tryReducePipe();
+    _cache_op_pos = token.pos;
+    _cache_pipe_op = token.image;
+    stack.push(util::mkptr(new ConditionalAutomation));
+}
+
 void PipelineAutomation::_reduce(AutomationStack& stack)
 {
     _tryReducePipe();
@@ -115,59 +108,36 @@ bool PipelineAutomation::_afterOperator(bool sub_empty) const
     return sub_empty && _cache_list.not_nul() && (!_cache_pipe_op.empty()) && _cache_section.nul();
 }
 
+ConditionalAutomation::ConditionalAutomation()
+    : _before_if(true)
+    , _before_else(true)
+    , _cache_consq(nullptr)
+    , _cache_pred(nullptr)
+{
+    _setFollowings({ PIPE_SEP, COMMA, COLON, PROP_SEP, CLOSE_PAREN, CLOSE_BRACKET, CLOSE_BRACE });
+    _actions[IF] = [&](AutomationStack& stack, TypedToken const& token)
+                   {
+                       if (!_before_if) {
+                           error::unexpectedToken(token.pos, token.image);
+                           return;
+                       }
+                       _before_if = false;
+                       activated(stack);
+                   };
+    _actions[ELSE] = [&](AutomationStack& stack, TypedToken const& token)
+                     {
+                         if (!_before_else) {
+                             error::unexpectedToken(token.pos, token.image);
+                             return;
+                         }
+                         _before_else = false;
+                         activated(stack);
+                     };
+}
+
 void ConditionalAutomation::activated(AutomationStack& stack)
 {
     stack.push(util::mkptr(new ArithAutomation));
-}
-
-void ConditionalAutomation::pushPipeSep(AutomationStack& stack, Token const& token)
-{
-    _forceReduce(stack);
-    stack.top()->pushPipeSep(stack, token);
-}
-
-void ConditionalAutomation::matchClosing(AutomationStack& stack, Token const& closer)
-{
-    _forceReduce(stack);
-    stack.top()->matchClosing(stack, closer);
-}
-
-void ConditionalAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
-{
-    _forceReduce(stack);
-    stack.top()->pushColon(stack, pos);
-}
-
-void ConditionalAutomation::pushPropertySeparator(AutomationStack& stack, misc::position const& pos)
-{
-    _forceReduce(stack);
-    stack.top()->pushPropertySeparator(stack, pos);
-}
-
-void ConditionalAutomation::pushComma(AutomationStack& stack, misc::position const& pos)
-{
-    _forceReduce(stack);
-    stack.top()->pushComma(stack, pos);
-}
-
-void ConditionalAutomation::pushIf(AutomationStack& stack, misc::position const& pos)
-{
-    if (!_before_if) {
-        error::unexpectedToken(pos, "if");
-        return;
-    }
-    _before_if = false;
-    activated(stack);
-}
-
-void ConditionalAutomation::pushElse(AutomationStack& stack, misc::position const& pos)
-{
-    if (!_before_else) {
-        error::unexpectedToken(pos, "else");
-        return;
-    }
-    _before_else = false;
-    activated(stack);
 }
 
 void ConditionalAutomation::accepted(AutomationStack& stack, util::sptr<Expression const> expr)
@@ -207,13 +177,18 @@ void ConditionalAutomation::finish(
     stack.top()->finish(wrapper, stack, pos);
 }
 
+bool ConditionalAutomation::_reduce(AutomationStack& stack, Token const&)
+{
+    _forceReduce(stack);
+    return true;
+}
+
 void ConditionalAutomation::_forceReduce(AutomationStack& stack)
 {
     if (!_before_if) {
         error::incompleteConditional(_cache_pred->pos);
     }
     stack.reduced(std::move(_cache_consq));
-    return;
 }
 
 namespace {
@@ -416,6 +391,34 @@ ArithAutomation::ArithAutomation()
     , _accept_list_for_args(false)
 {
     _op_stack.push_back(util::mkptr(new PlaceholderOp));
+    _setFollowings({
+        IF, ELSE, PIPE_SEP, COMMA, COLON, PROP_SEP, CLOSE_PAREN, CLOSE_BRACKET, CLOSE_BRACE
+    });
+    _actions[THIS] = [&](AutomationStack& stack, TypedToken const& token)
+                     {
+                         if (!_need_factor) {
+                             error::unexpectedToken(token.pos, "@");
+                             return;
+                         }
+                         _need_factor = false;
+                         stack.push(util::mkptr(new ThisPropertyAutomation(token.pos)));
+                     };
+    _actions[OPEN_PAREN] = [&](AutomationStack& stack, TypedToken const& token)
+                           {
+                               _pushOpenParen(stack, token.pos);
+                           };
+    _actions[OPEN_BRACKET] = [&](AutomationStack& stack, TypedToken const& token)
+                             {
+                                 _pushOpenBracket(stack, token.pos);
+                             };
+    _actions[OPEN_BRACE] = [&](AutomationStack& stack, TypedToken const& token)
+                           {
+                               _pushOpenBrace(stack, token.pos);
+                           };
+    _actions[OPERATOR] = [&](AutomationStack& stack, TypedToken const& token)
+                         {
+                             _pushOp(stack, token);
+                         };
 }
 
 void ArithAutomation::_reduceBinaryOrPostfix(int pri)
@@ -424,32 +427,6 @@ void ArithAutomation::_reduceBinaryOrPostfix(int pri)
         util::sptr<ArithAutomation::Operator const> op(std::move(_op_stack.back()));
         _op_stack.pop_back();
         op->operate(_factor_stack);
-    }
-}
-
-void ArithAutomation::pushOp(AutomationStack& stack, Token const& token)
-{
-    if ("%" == token.image && _empty()) {
-        stack.replace(util::mkptr(new AsyncPlaceholderAutomation(token.pos)));
-        return;
-    }
-    if (UNARY_PRI_MAPPING.find(token.image) != UNARY_PRI_MAPPING.end() && _need_factor) {
-        _op_stack.push_back(util::mkptr(new PreUnaryOperator(token.pos, token.image)));
-        return;
-    }
-    if (BINARY_PRI_MAPPING.find(token.image) != BINARY_PRI_MAPPING.end() && !_need_factor) {
-        _reduceBinaryOrPostfix(BINARY_PRI_MAPPING.find(token.image)->second);
-        _op_stack.push_back(util::mkptr(new BinaryOperator(token.pos, token.image)));
-        _need_factor = true;
-        return;
-    }
-    error::unexpectedToken(token.pos, token.image);
-}
-
-void ArithAutomation::pushPipeSep(AutomationStack& stack, Token const& token)
-{
-    if (_reduceIfPossible(stack, token.pos, token.image)) {
-        stack.top()->pushPipeSep(stack, token);
     }
 }
 
@@ -462,105 +439,6 @@ void ArithAutomation::pushFactor(
         return;
     }
     AutomationBase::pushFactor(stack, std::move(factor), image);
-}
-
-void ArithAutomation::pushThis(AutomationStack& stack, misc::position const& pos)
-{
-    if (!_need_factor) {
-        error::unexpectedToken(pos, "@");
-        return;
-    }
-    _need_factor = false;
-    stack.push(util::mkptr(new ThisPropertyAutomation(pos)));
-}
-
-void ArithAutomation::pushOpenParen(AutomationStack& stack, misc::position const&)
-{
-    _accept_list_for_args = true;
-    if (_need_factor) {
-        _need_factor = false;
-        stack.push(util::mkptr(new NestedOrParamsAutomation));
-    } else {
-        stack.push(util::mkptr(new ExprListAutomation));
-    }
-}
-
-void ArithAutomation::pushOpenBracket(AutomationStack& stack, misc::position const&)
-{
-    if (_need_factor) {
-        _need_factor = false;
-        stack.push(util::mkptr(new ListLiteralAutomation));
-    } else {
-        _accept_list_for_args = false;
-        stack.push(util::mkptr(new BracketedExprAutomation));
-    }
-}
-
-void ArithAutomation::pushOpenBrace(AutomationStack& stack, misc::position const& pos)
-{
-    if (_need_factor) {
-        _need_factor = false;
-        stack.push(util::mkptr(new DictAutomation));
-        return;
-    }
-    error::unexpectedToken(pos, "{");
-}
-
-bool ArithAutomation::_reduceIfPossible(
-                AutomationStack& stack, misc::position const& pos, std::string const& image)
-{
-    if (_need_factor && !_empty()) {
-        error::unexpectedToken(pos, image);
-        return false;
-    }
-    if (_empty()) {
-        stack.reduced(util::mkptr(new EmptyExpr(pos)));
-    } else {
-        stack.reduced(reduce(_op_stack, _factor_stack));
-    }
-    return true;
-}
-
-void ArithAutomation::matchClosing(AutomationStack& stack, Token const& closer)
-{
-    if (_reduceIfPossible(stack, closer.pos, closer.image)) {
-        stack.top()->matchClosing(stack, closer);
-    }
-}
-
-void ArithAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
-{
-    if (_reduceIfPossible(stack, pos, ":")) {
-        stack.top()->pushColon(stack, pos);
-    }
-}
-
-void ArithAutomation::pushPropertySeparator(AutomationStack& stack, misc::position const& pos)
-{
-    if (_reduceIfPossible(stack, pos, "::")) {
-        stack.top()->pushPropertySeparator(stack, pos);
-    }
-}
-
-void ArithAutomation::pushComma(AutomationStack& stack, misc::position const& pos)
-{
-    if (_reduceIfPossible(stack, pos, ",")) {
-        stack.top()->pushComma(stack, pos);
-    }
-}
-
-void ArithAutomation::pushIf(AutomationStack& stack, misc::position const& pos)
-{
-    if (_reduceIfPossible(stack, pos, "if")) {
-        stack.top()->pushIf(stack, pos);
-    }
-}
-
-void ArithAutomation::pushElse(AutomationStack& stack, misc::position const& pos)
-{
-    if (_reduceIfPossible(stack, pos, "else")) {
-        stack.top()->pushElse(stack, pos);
-    }
 }
 
 void ArithAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)
@@ -607,9 +485,86 @@ void ArithAutomation::finish(
     stack.top()->finish(wrapper, stack, pos);
 }
 
+bool ArithAutomation::_reduce(AutomationStack& stack, Token const& token)
+{
+    if (_need_factor && !_empty()) {
+        error::unexpectedToken(token.pos, token.image);
+        return false;
+    }
+    if (_empty()) {
+        stack.reduced(util::mkptr(new EmptyExpr(token.pos)));
+    } else {
+        stack.reduced(reduce(_op_stack, _factor_stack));
+    }
+    return true;
+}
+
 bool ArithAutomation::_empty() const
 {
     return _op_stack.size() == 1 && _factor_stack.empty();
+}
+
+void ArithAutomation::_pushOp(AutomationStack& stack, Token const& token)
+{
+    if ("%" == token.image && _empty()) {
+        stack.replace(util::mkptr(new AsyncPlaceholderAutomation(token.pos)));
+        return;
+    }
+    if (UNARY_PRI_MAPPING.find(token.image) != UNARY_PRI_MAPPING.end() && _need_factor) {
+        _op_stack.push_back(util::mkptr(new PreUnaryOperator(token.pos, token.image)));
+        return;
+    }
+    if (BINARY_PRI_MAPPING.find(token.image) != BINARY_PRI_MAPPING.end() && !_need_factor) {
+        _reduceBinaryOrPostfix(BINARY_PRI_MAPPING.find(token.image)->second);
+        _op_stack.push_back(util::mkptr(new BinaryOperator(token.pos, token.image)));
+        _need_factor = true;
+        return;
+    }
+    error::unexpectedToken(token.pos, token.image);
+}
+
+void ArithAutomation::_pushOpenParen(AutomationStack& stack, misc::position const&)
+{
+    _accept_list_for_args = true;
+    if (_need_factor) {
+        _need_factor = false;
+        stack.push(util::mkptr(new NestedOrParamsAutomation));
+    } else {
+        stack.push(util::mkptr(new ExprListAutomation));
+    }
+}
+
+void ArithAutomation::_pushOpenBracket(AutomationStack& stack, misc::position const&)
+{
+    if (_need_factor) {
+        _need_factor = false;
+        stack.push(util::mkptr(new ListLiteralAutomation));
+    } else {
+        _accept_list_for_args = false;
+        stack.push(util::mkptr(new BracketedExprAutomation));
+    }
+}
+
+void ArithAutomation::_pushOpenBrace(AutomationStack& stack, misc::position const& pos)
+{
+    if (_need_factor) {
+        _need_factor = false;
+        stack.push(util::mkptr(new DictAutomation));
+        return;
+    }
+    error::unexpectedToken(pos, "{");
+}
+
+ExprListAutomation::ExprListAutomation()
+{
+    _actions[COMMA] = [&](AutomationStack& stack, Token const& token)
+                      {
+                          _pushComma(stack, token.pos);
+                      };
+    _actions[CLOSE_PAREN] = [&](AutomationStack& stack, Token const&)
+                            {
+                                _matchCloseParen(stack);
+                            };
 }
 
 void ExprListAutomation::activated(AutomationStack& stack)
@@ -627,20 +582,11 @@ static void checkExprListNotEmpty(std::vector<util::sptr<Expression const>> cons
     }
 }
 
-void ExprListAutomation::matchClosing(AutomationStack& stack, Token const& closer)
+void ExprListAutomation::_matchCloseParen(AutomationStack& stack)
 {
-    if (")" == closer.image) {
-        removeLastEmpty(_list);
-        checkExprListNotEmpty(_list);
-        stack.reduced(std::move(_list));
-        return;
-    }
-    error::unexpectedToken(closer.pos, closer.image);
-}
-
-void ExprListAutomation::pushComma(AutomationStack& stack, misc::position const&)
-{
-    activated(stack);
+    removeLastEmpty(_list);
+    checkExprListNotEmpty(_list);
+    stack.reduced(std::move(_list));
 }
 
 void ExprListAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)
@@ -648,15 +594,56 @@ void ExprListAutomation::accepted(AutomationStack&, util::sptr<Expression const>
     _list.push_back(std::move(expr));
 }
 
-void ListLiteralAutomation::matchClosing(AutomationStack& stack, Token const& closer)
+void ExprListAutomation::_pushComma(AutomationStack& stack, misc::position const&)
 {
-    if ("]" == closer.image) {
-        removeLastEmpty(_list);
-        checkExprListNotEmpty(_list);
-        stack.reduced(util::mkptr(new ListLiteral(closer.pos, std::move(_list))));
-        return;
-    }
-    error::unexpectedToken(closer.pos, closer.image);
+    activated(stack);
+}
+
+ListLiteralAutomation::ListLiteralAutomation()
+{
+    _actions[CLOSE_BRACKET] = [&](AutomationStack& stack, Token const& token)
+                              {
+                                  _matchCloseBracket(stack, token.pos);
+                              };
+}
+
+void ListLiteralAutomation::_matchCloseBracket(AutomationStack& stack, misc::position const& pos)
+{
+    removeLastEmpty(_list);
+    checkExprListNotEmpty(_list);
+    stack.reduced(util::mkptr(new ListLiteral(pos, std::move(_list))));
+}
+
+NestedOrParamsAutomation::NestedOrParamsAutomation()
+    : _wait_for_closing(true)
+    , _wait_for_colon(false)
+    , _lambda_ret_val(nullptr)
+{
+    _setFollowings({ PIPE_SEP, OPEN_PAREN, OPEN_BRACKET, OPERATOR });
+    _actions[COMMA] = [&](AutomationStack& stack, TypedToken const& token)
+                      {
+                          _pushComma(stack, token);
+                      };
+    _actions[COLON] = [&](AutomationStack& stack, TypedToken const& token)
+                      {
+                          _pushColon(stack, token.pos);
+                      };
+    TokenAction matchClose([&](AutomationStack& stack, TypedToken const& token)
+                           {
+                               _matchClose(stack, token);
+                           });
+    _actions[CLOSE_PAREN] = [&](AutomationStack& stack, TypedToken const& token)
+                            {
+                                if (_wait_for_closing) {
+                                    removeLastEmpty(_list);
+                                    _wait_for_colon = true;
+                                    _wait_for_closing = false;
+                                    return;
+                                }
+                                _matchClose(stack, token);
+                            };
+    _actions[CLOSE_BRACKET] = matchClose;
+    _actions[CLOSE_BRACE] = matchClose;
 }
 
 void NestedOrParamsAutomation::_reduceAsNested(AutomationStack& stack, misc::position const& rp)
@@ -672,51 +659,35 @@ void NestedOrParamsAutomation::_reduceAsNested(AutomationStack& stack, misc::pos
     stack.reduced(std::move(_list[0]));
 }
 
-void NestedOrParamsAutomation::pushOp(AutomationStack& stack, Token const& token)
+void NestedOrParamsAutomation::_matchClose(AutomationStack& stack, TypedToken const& closer)
 {
-    _reduceAsNested(stack, token.pos);
-    stack.top()->pushOp(stack, token);
-}
-
-void NestedOrParamsAutomation::pushPipeSep(AutomationStack& stack, Token const& token)
-{
-    _reduceAsNested(stack, token.pos);
-    stack.top()->pushPipeSep(stack, token);
-}
-
-void NestedOrParamsAutomation::pushOpenParen(AutomationStack& stack, misc::position const& pos)
-{
-    _reduceAsNested(stack, pos);
-    stack.top()->pushOpenParen(stack, pos);
-}
-
-void NestedOrParamsAutomation::pushOpenBracket(AutomationStack& stack, misc::position const& pos)
-{
-    _reduceAsNested(stack, pos);
-    stack.top()->pushOpenBracket(stack, pos);
-}
-
-void NestedOrParamsAutomation::matchClosing(AutomationStack& stack, Token const& closer)
-{
-    if (!_wait_for_closing) {
-        if (!_wait_for_colon) {
-            _reduceAsLambda(stack);
-        } else {
-            _reduceAsNested(stack, closer.pos);
-        }
-        stack.top()->matchClosing(stack, closer);
-        return;
-    }
-    if (")" != closer.image || _wait_for_colon) {
+    if (_wait_for_closing) {
         error::unexpectedToken(closer.pos, closer.image);
         return;
     }
-    removeLastEmpty(_list);
-    _wait_for_colon = true;
-    _wait_for_closing = false;
+    if (!_wait_for_colon) {
+        _reduceAsLambda(stack);
+    } else {
+        _reduceAsNested(stack, closer.pos);
+    }
+    stack.top()->nextToken(stack, closer);
 }
 
-void NestedOrParamsAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
+void NestedOrParamsAutomation::_pushComma(AutomationStack& stack, TypedToken const& token)
+{
+    if (_wait_for_closing) {
+        ExprListAutomation::_pushComma(stack, token.pos);
+        return;
+    }
+    if (!_wait_for_colon) {
+        _reduceAsLambda(stack);
+    } else {
+        _reduceAsNested(stack, token.pos);
+    }
+    stack.top()->nextToken(stack, token);
+}
+
+void NestedOrParamsAutomation::_pushColon(AutomationStack& stack, misc::position const& pos)
 {
     if (!_wait_for_colon) {
         error::unexpectedToken(pos, ":");
@@ -725,18 +696,10 @@ void NestedOrParamsAutomation::pushColon(AutomationStack& stack, misc::position 
     stack.push(util::mkptr(new PipelineAutomation));
 }
 
-void NestedOrParamsAutomation::pushComma(AutomationStack& stack, misc::position const& pos)
+bool NestedOrParamsAutomation::_reduce(AutomationStack& stack, Token const& token)
 {
-    if (_wait_for_closing) {
-        ExprListAutomation::pushComma(stack, pos);
-        return;
-    }
-    if (!_wait_for_colon) {
-        _reduceAsLambda(stack);
-    } else {
-        _reduceAsNested(stack, pos);
-    }
-    stack.top()->pushComma(stack, pos);
+    _reduceAsNested(stack, token.pos);
+    return true;
 }
 
 void NestedOrParamsAutomation::_reduceAsLambda(AutomationStack& stack)
@@ -810,12 +773,17 @@ bool NestedOrParamsAutomation::_afterColon() const
     return !(_wait_for_closing || _wait_for_colon);
 }
 
-void BracketedExprAutomation::matchClosing(AutomationStack& stack, Token const& closer)
+BracketedExprAutomation::BracketedExprAutomation()
 {
-    if ("]" != closer.image) {
-        error::unexpectedToken(closer.pos, closer.image);
-        return;
-    }
+    _actions[CLOSE_PAREN] = AutomationBase::discardToken;
+    _actions[CLOSE_BRACKET] = [&](AutomationStack& stack, TypedToken const& token)
+                              {
+                                  _matchCloseBracket(stack, token);
+                              };
+}
+
+void BracketedExprAutomation::_matchCloseBracket(AutomationStack& stack, Token const& closer)
+{
     if (_list.size() > 3) {
         error::tooManySliceParts(closer.pos);
         stack.reduced(util::mkptr(new EmptyExpr(closer.pos)));
@@ -837,24 +805,44 @@ void BracketedExprAutomation::matchClosing(AutomationStack& stack, Token const& 
     stack.reduced(std::move(_list));
 }
 
+DictAutomation::DictAutomation()
+    : _wait_for_key(true)
+    , _wait_for_colon(false)
+    , _wait_for_comma(false)
+    , _key_cache(nullptr)
+{
+    _actions[COMMA] = [&](AutomationStack& stack, TypedToken const& token)
+                      {
+                          _pushComma(stack, token.pos);
+                      };
+    _actions[COLON] = [&](AutomationStack& stack, TypedToken const& token)
+                      {
+                          _pushColon(stack, token.pos);
+                      };
+    _actions[PROP_SEP] = [&](AutomationStack& stack, TypedToken const& token)
+                         {
+                             _pushPropertySeparator(stack, token.pos);
+                         };
+    _actions[CLOSE_BRACE] = [&](AutomationStack& stack, TypedToken const& token)
+                            {
+                                _matchCloseBrace(stack, token);
+                            };
+}
+
 void DictAutomation::activated(AutomationStack& stack)
 {
     stack.push(util::mkptr(new PipelineAutomation));
 }
 
-void DictAutomation::matchClosing(AutomationStack& stack, Token const& closer)
+void DictAutomation::_matchCloseBrace(AutomationStack& stack, Token const& closer)
 {
-    if ("}" != closer.image) {
-        error::unexpectedToken(closer.pos, closer.image);
-        return;
-    }
     if (!(_wait_for_key || _key_cache->empty())) {
         error::unexpectedToken(closer.pos, closer.image);
     }
     stack.reduced(util::mkptr(new Dictionary(closer.pos, std::move(_items))));
 }
 
-void DictAutomation::pushComma(AutomationStack& stack, misc::position const& pos)
+void DictAutomation::_pushComma(AutomationStack& stack, misc::position const& pos)
 {
     if (!_wait_for_comma) {
         error::unexpectedToken(pos, ",");
@@ -862,31 +850,6 @@ void DictAutomation::pushComma(AutomationStack& stack, misc::position const& pos
     }
     _wait_for_comma = false;
     stack.push(util::mkptr(new PipelineAutomation));
-}
-
-bool DictAutomation::_pushSeparator(AutomationStack& stack
-                                  , misc::position const& pos
-                                  , std::string const& sep)
-{
-    if (!_wait_for_colon) {
-        error::unexpectedToken(pos, sep);
-        return false;
-    }
-    _wait_for_colon = false;
-    stack.push(util::mkptr(new PipelineAutomation));
-    return true;
-}
-
-void DictAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
-{
-    if (_pushSeparator(stack, pos, ":")) {
-        _key_cache.reset(new StringLiteral(_key_cache->pos, _key_cache->reduceAsProperty()));
-    }
-}
-
-void DictAutomation::pushPropertySeparator(AutomationStack& stack, misc::position const& pos)
-{
-    _pushSeparator(stack, pos, "::");
 }
 
 void DictAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)
@@ -907,28 +870,50 @@ void DictAutomation::accepted(AutomationStack&, util::sptr<Expression const> exp
     _wait_for_key = !_wait_for_key;
 }
 
+void DictAutomation::_pushPropertySeparator(AutomationStack& stack, misc::position const& pos)
+{
+    _pushSeparator(stack, pos, "::");
+}
+
+void DictAutomation::_pushColon(AutomationStack& stack, misc::position const& pos)
+{
+    if (_pushSeparator(stack, pos, ":")) {
+        _key_cache.reset(new StringLiteral(_key_cache->pos, _key_cache->reduceAsProperty()));
+    }
+}
+
+bool DictAutomation::_pushSeparator(AutomationStack& stack
+                                  , misc::position const& pos
+                                  , std::string const& sep)
+{
+    if (!_wait_for_colon) {
+        error::unexpectedToken(pos, sep);
+        return false;
+    }
+    _wait_for_colon = false;
+    stack.push(util::mkptr(new PipelineAutomation));
+    return true;
+}
+
+AsyncPlaceholderAutomation::AsyncPlaceholderAutomation(misc::position const& ps)
+    : pos(ps)
+{
+    static AutomationCreator const createExprList(
+            [](TypedToken const&)
+            {
+                return util::mkptr(new ExprListAutomation);
+            });
+    _setFollowings({ COMMA, CLOSE_PAREN, CLOSE_BRACKET, CLOSE_BRACE });
+    _setShifts({
+        { OPEN_PAREN, { createExprList, false } },
+    });
+}
+
 void AsyncPlaceholderAutomation::pushFactor(
             AutomationStack& stack, util::sptr<Expression const> factor, std::string const& image)
 {
     stack.push(util::mkptr(new PipelineAutomation));
     stack.top()->pushFactor(stack, std::move(factor), image);
-}
-
-void AsyncPlaceholderAutomation::pushOpenParen(AutomationStack& stack, misc::position const&)
-{
-    stack.push(util::mkptr(new ExprListAutomation));
-}
-
-void AsyncPlaceholderAutomation::matchClosing(AutomationStack& stack, Token const& closer)
-{
-    stack.reduced(util::mkptr(new AsyncPlaceholder(pos, std::vector<std::string>())));
-    stack.top()->matchClosing(stack, closer);
-}
-
-void AsyncPlaceholderAutomation::pushComma(AutomationStack& stack, misc::position const& pos)
-{
-    stack.reduced(util::mkptr(new AsyncPlaceholder(pos, std::vector<std::string>())));
-    stack.top()->pushComma(stack, pos);
 }
 
 void AsyncPlaceholderAutomation::accepted(AutomationStack& stack, util::sptr<Expression const> expr)
@@ -949,16 +934,19 @@ void AsyncPlaceholderAutomation::accepted(
                                                      }))));
 }
 
-void ThisPropertyAutomation::pushOp(AutomationStack& stack, Token const& token)
+bool AsyncPlaceholderAutomation::_reduce(AutomationStack& stack, Token const&)
 {
-    stack.reduced(util::mkptr(new This(this->pos)));
-    stack.top()->pushOp(stack, token);
+    stack.reduced(util::mkptr(new AsyncPlaceholder(pos, std::vector<std::string>())));
+    return true;
 }
 
-void ThisPropertyAutomation::pushPipeSep(AutomationStack& stack, Token const& token)
+ThisPropertyAutomation::ThisPropertyAutomation(misc::position const& ps)
+    : pos(ps)
 {
-    stack.reduced(util::mkptr(new This(this->pos)));
-    stack.top()->pushPipeSep(stack, token);
+    _setFollowings({
+        PIPE_SEP, COMMA, COLON, PROP_SEP, OPEN_PAREN, OPEN_BRACKET, CLOSE_PAREN, CLOSE_BRACKET,
+        CLOSE_BRACE, OPERATOR
+    });
 }
 
 void ThisPropertyAutomation::pushFactor(AutomationStack& stack
@@ -967,43 +955,6 @@ void ThisPropertyAutomation::pushFactor(AutomationStack& stack
 {
     stack.reduced(util::mkptr(new Lookup(util::mkptr(new This(pos))
                                        , util::mkptr(new StringLiteral(factor->pos, image)))));
-}
-
-void ThisPropertyAutomation::pushOpenParen(AutomationStack& stack, misc::position const& pos)
-{
-    stack.reduced(util::mkptr(new This(this->pos)));
-    stack.top()->pushOpenParen(stack, pos);
-}
-
-void ThisPropertyAutomation::pushOpenBracket(AutomationStack& stack, misc::position const& pos)
-{
-    stack.reduced(util::mkptr(new This(this->pos)));
-    stack.top()->pushOpenBracket(stack, pos);
-}
-
-void ThisPropertyAutomation::matchClosing(AutomationStack& stack, Token const& closer)
-{
-    stack.reduced(util::mkptr(new This(this->pos)));
-    stack.top()->matchClosing(stack, closer);
-}
-
-void ThisPropertyAutomation::pushComma(AutomationStack& stack, misc::position const& pos)
-{
-    stack.reduced(util::mkptr(new This(this->pos)));
-    stack.top()->pushComma(stack, pos);
-}
-
-void ThisPropertyAutomation::pushPropertySeparator(
-                    AutomationStack& stack, misc::position const& pos)
-{
-    stack.reduced(util::mkptr(new This(this->pos)));
-    stack.top()->pushColon(stack, pos);
-}
-
-void ThisPropertyAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
-{
-    stack.reduced(util::mkptr(new This(this->pos)));
-    stack.top()->pushColon(stack, pos);
 }
 
 bool ThisPropertyAutomation::finishOnBreak(bool) const
@@ -1016,4 +967,10 @@ void ThisPropertyAutomation::finish(
 {
     stack.reduced(util::mkptr(new This(pos)));
     stack.top()->finish(wrapper, stack, pos);
+}
+
+bool ThisPropertyAutomation::_reduce(AutomationStack& stack, Token const&)
+{
+    stack.reduced(util::mkptr(new This(pos)));
+    return true;
 }

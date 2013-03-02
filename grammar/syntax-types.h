@@ -1,9 +1,9 @@
 #ifndef __STEKIN_GRAMMAR_SYNTAX_TYPE_H__
 #define __STEKIN_GRAMMAR_SYNTAX_TYPE_H__
 
-#include <semantic/fwd-decl.h>
+#include <vector>
 
-#include "automation-base.h"
+#include "tokens.h"
 
 namespace grammar {
 

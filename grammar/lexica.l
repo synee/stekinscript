@@ -191,11 +191,7 @@ while {
     return OPERATOR;
 }
 
-[\|]: {
-    return PIPE_SEP;
-}
-
-[\|][?] {
+[\|][:?] {
     return PIPE_SEP;
 }
 

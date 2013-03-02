@@ -16,6 +16,8 @@
 
 namespace test {
 
+    extern std::map<std::string, grammar::TokenType> const IMAGE_TYPE_MAP;
+
     util::sptr<semantic::Filter> mkfilter();
     util::sref<semantic::SymbolTable> nulSymbols();
     semantic::CompilingSpace& nulSpace();

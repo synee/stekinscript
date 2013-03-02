@@ -9,10 +9,35 @@
 
 using namespace grammar;
 
-void ExprStmtAutomation::pushOp(AutomationStack& stack, Token const& token)
+ExprStmtAutomation::ExprStmtAutomation(util::sref<ClauseBase> clause)
+    : _clause(clause)
+    , _before_colon(true)
 {
-    stack.push(util::mkptr(new PipelineAutomation));
-    stack.top()->pushOp(stack, token);
+    static AutomationCreator const createPipeline(
+            [](TypedToken const&)
+            {
+                return util::mkptr(new PipelineAutomation);
+            });
+    _setShifts({
+        { THIS, { createPipeline, true } },
+        { OPEN_PAREN, { createPipeline, true } },
+        { OPEN_BRACKET, { createPipeline, true } },
+        { OPEN_BRACE, { createPipeline, true } },
+        { OPERATOR, { createPipeline, true } },
+    });
+
+    _actions[IF] = [](AutomationStack& stack, TypedToken const&)
+                   {
+                       stack.replace(util::mkptr(new IfAutomation));
+                   };
+    _actions[ELSE] = [](AutomationStack& stack, TypedToken const& token)
+                     {
+                         stack.replace(util::mkptr(new ElseAutomation(token.pos)));
+                     };
+    _actions[COLON] = [&](AutomationStack& stack, TypedToken const& token)
+                      {
+                          _pushColon(stack, token.pos);
+                      };
 }
 
 void ExprStmtAutomation::pushFactor(AutomationStack& stack
@@ -21,50 +46,6 @@ void ExprStmtAutomation::pushFactor(AutomationStack& stack
 {
     stack.push(util::mkptr(new PipelineAutomation));
     stack.top()->pushFactor(stack, std::move(factor), image);
-}
-
-void ExprStmtAutomation::pushThis(AutomationStack& stack, misc::position const& pos)
-{
-    stack.push(util::mkptr(new PipelineAutomation));
-    stack.top()->pushThis(stack, pos);
-}
-
-void ExprStmtAutomation::pushOpenParen(AutomationStack& stack, misc::position const& pos)
-{
-    stack.push(util::mkptr(new PipelineAutomation));
-    stack.top()->pushOpenParen(stack, pos);
-}
-
-void ExprStmtAutomation::pushOpenBracket(AutomationStack& stack, misc::position const& pos)
-{
-    stack.push(util::mkptr(new PipelineAutomation));
-    stack.top()->pushOpenBracket(stack, pos);
-}
-
-void ExprStmtAutomation::pushOpenBrace(AutomationStack& stack, misc::position const& pos)
-{
-    stack.push(util::mkptr(new PipelineAutomation));
-    stack.top()->pushOpenBrace(stack, pos);
-}
-
-void ExprStmtAutomation::pushColon(AutomationStack& stack, misc::position const& pos)
-{
-    _before_colon = false;
-    if (_exprs.size() == 1) {
-        stack.push(util::mkptr(new PipelineAutomation));
-        return;
-    }
-    error::unexpectedToken(pos, ":");
-}
-
-void ExprStmtAutomation::pushIf(AutomationStack& stack, misc::position const&)
-{
-    stack.replace(util::mkptr(new IfAutomation));
-}
-
-void ExprStmtAutomation::pushElse(AutomationStack& stack, misc::position const& pos)
-{
-    stack.replace(util::mkptr(new ElseAutomation(pos)));
 }
 
 void ExprStmtAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)
@@ -79,8 +60,20 @@ bool ExprStmtAutomation::finishOnBreak(bool sub_empty) const
 
 void ExprStmtAutomation::finish(ClauseStackWrapper&, AutomationStack& stack, misc::position const&)
 {
-    _clause->acceptStmt(_reduceAsStmt());
+    if (!_exprs.empty()) {
+        _clause->acceptStmt(_reduceAsStmt());
+    }
     stack.pop();
+}
+
+void ExprStmtAutomation::_pushColon(AutomationStack& stack, misc::position const& pos)
+{
+    _before_colon = false;
+    if (_exprs.size() == 1) {
+        stack.push(util::mkptr(new PipelineAutomation));
+        return;
+    }
+    error::unexpectedToken(pos, ":");
 }
 
 util::sptr<Statement> ExprStmtAutomation::_reduceAsStmt()
@@ -135,11 +128,6 @@ void ExprReceiver::activated(AutomationStack& stack)
 void ExprReceiver::accepted(AutomationStack&, util::sptr<Expression const> expr)
 {
     _expr = std::move(expr);
-}
-
-bool ExprReceiver::finishOnBreak(bool) const
-{
-    return true;
 }
 
 void ExprReceiver::finish(ClauseStackWrapper&, AutomationStack& stack, misc::position const&)

@@ -10,6 +10,15 @@
 
 using namespace test;
 
+std::map<std::string, grammar::TokenType> const test::IMAGE_TYPE_MAP({
+    { "(", grammar::OPEN_PAREN },
+    { "[", grammar::OPEN_BRACKET },
+    { "{", grammar::OPEN_BRACE },
+    { ")", grammar::CLOSE_PAREN },
+    { "]", grammar::CLOSE_BRACKET },
+    { "}", grammar::CLOSE_BRACE },
+});
+
 util::sptr<semantic::Filter> test::mkfilter()
 {
     return std::move(util::mkptr(new semantic::Filter));

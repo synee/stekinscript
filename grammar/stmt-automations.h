@@ -8,26 +8,16 @@ namespace grammar {
     struct ExprStmtAutomation
         : AutomationBase
     {
-        void pushOp(AutomationStack& stack, Token const& token);
+        explicit ExprStmtAutomation(util::sref<ClauseBase> clause);
+
         void pushFactor(AutomationStack& stack
                       , util::sptr<Expression const> factor
                       , std::string const& image);
-        void pushThis(AutomationStack& stack, misc::position const& pos);
-        void pushOpenParen(AutomationStack& stack, misc::position const& pos);
-        void pushOpenBracket(AutomationStack& stack, misc::position const& pos);
-        void pushOpenBrace(AutomationStack& stack, misc::position const& pos);
-        void pushColon(AutomationStack& stack, misc::position const& pos);
-        void pushIf(AutomationStack& stack, misc::position const&);
-        void pushElse(AutomationStack& stack, misc::position const& pos);
         void accepted(AutomationStack&, util::sptr<Expression const> expr);
         bool finishOnBreak(bool sub_empty) const;
         void finish(ClauseStackWrapper&, AutomationStack& stack, misc::position const&);
-
-        explicit ExprStmtAutomation(util::sref<ClauseBase> clause)
-            : _clause(clause)
-            , _before_colon(true)
-        {}
     private:
+        void _pushColon(AutomationStack& stack, misc::position const& pos);
         util::sptr<Statement> _reduceAsStmt();
 
         std::vector<util::sptr<Expression const>> _exprs;
@@ -69,7 +59,7 @@ namespace grammar {
     {
         void activated(AutomationStack& stack);
         void accepted(AutomationStack&, util::sptr<Expression const> expr);
-        bool finishOnBreak(bool) const;
+        bool finishOnBreak(bool) const { return true; }
         void finish(ClauseStackWrapper&, AutomationStack& stack, misc::position const&);
 
         explicit ExprReceiver(util::sref<ClauseBase> clause)

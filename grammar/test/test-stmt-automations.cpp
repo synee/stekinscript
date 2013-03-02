@@ -9,14 +9,14 @@ TEST_F(AutomationTest, ReduceNameDef)
     stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
 
     pushIdent(pos, "Zzz");
-    stack->top()->pushColon(stackref(), pos);
-    stack->top()->pushOp(stackref(), TestToken(pos, "!"));
+    pushColon(pos);
+    pushOp(pos, "!");
     pushIdent(pos, "sasaki");
-    stack->top()->pushOp(stackref(), TestToken(pos, "&&"));
+    pushOp(pos, "&&");
     pushIdent(pos, "nitijou");
-    stack->top()->pushOp(stackref(), TestToken(pos, "="));
+    pushOp(pos, "=");
     pushIdent(pos, "nano");
-    stack->top()->pushOp(stackref(), TestToken(pos, "+"));
+    pushOp(pos, "+");
     pushIdent(pos, "mio");
     ASSERT_TRUE(stack->top()->finishOnBreak(true));
     finish(pos);
@@ -55,11 +55,11 @@ TEST_F(AutomationTest, ReduceInvalidNameDef)
     stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
 
     pushIdent(pos, "am1141");
-    stack->top()->pushOp(stackref(), TestToken(pos, "."));
-    stack->top()->pushOpenParen(stackref(), pos);
+    pushOp(pos, ".");
+    open(pos, "(");
     pushInteger(pos, "20121110");
-    stack->top()->matchClosing(stackref(), TestToken(pos, ")"));
-    stack->top()->pushOp(stackref(), TestToken(pos, "+"));
+    close(pos, ")");
+    pushOp(pos, "+");
     pushIdent(pos, "ohayou");
     ASSERT_TRUE(stack->top()->finishOnBreak(true));
     finish(pos);
@@ -80,7 +80,7 @@ TEST_F(AutomationTest, ReduceInvalidLeftValue)
     stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
 
     pushInteger(pos, "20121110");
-    stack->top()->pushColon(stackref(), pos);
+    pushColon(pos);
     pushIdent(pos, "no_uta");
     ASSERT_TRUE(stack->top()->finishOnBreak(true));
     finish(pos);
@@ -101,7 +101,7 @@ TEST_F(AutomationTest, BreakAfterColon)
     stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
 
     pushIdent(pos, "sasa");
-    stack->top()->pushColon(stackref(), pos);
+    pushColon(pos);
     ASSERT_FALSE(stack->top()->finishOnBreak(true));
     pushIdent(pos, "nidori");
     ASSERT_TRUE(stack->top()->finishOnBreak(true));

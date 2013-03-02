@@ -1,9 +1,11 @@
+#include <algorithm>
+
 #include <report/errors.h>
 
-#include "node-base.h"
-#include "stmt-automations.h"
-#include "function.h"
+#include "tokens.h"
+#include "automation-base.h"
 #include "clauses.h"
+#include "function.h"
 
 using namespace grammar;
 
@@ -60,12 +62,18 @@ bool AutomationStack::empty() const
     return _stack.empty();
 }
 
-void AutomationBase::pushOp(AutomationStack&, Token const& token)
+AutomationBase::AutomationBase()
+    : _previous(nullptr)
 {
-    error::unexpectedToken(token.pos, token.image);
+    std::fill(_actions, _actions + TOKEN_TYPE_COUNT, AutomationBase::discardToken);
 }
 
-void AutomationBase::pushPipeSep(AutomationStack&, Token const& token)
+void AutomationBase::nextToken(AutomationStack& stack, TypedToken const& token)
+{
+    _actions[token.type](stack, token);
+}
+
+void AutomationBase::discardToken(AutomationStack&, TypedToken const& token)
 {
     error::unexpectedToken(token.pos, token.image);
 }
@@ -76,54 +84,38 @@ void AutomationBase::pushFactor(
     error::unexpectedToken(factor->pos, image);
 }
 
-void AutomationBase::pushThis(AutomationStack&, misc::position const& pos)
+void AutomationBase::_setFollowings(std::set<TokenType> types)
 {
-    error::unexpectedToken(pos, "@");
+    std::for_each(types.begin()
+                , types.end()
+                , [&](TokenType tp)
+                  {
+                      _actions[tp] = [=](AutomationStack& stack, TypedToken const& follower)
+                                     {
+                                         if (_reduce(stack, follower)) {
+                                             stack.top()->nextToken(stack, follower);
+                                         }
+                                     };
+                  });
 }
 
-void AutomationBase::pushOpenParen(AutomationStack&, misc::position const& pos)
+void AutomationBase::_setShifts(std::map<TokenType, std::pair<AutomationCreator const&, bool>> types)
 {
-    error::unexpectedToken(pos, "(");
-}
-
-void AutomationBase::pushOpenBracket(AutomationStack&, misc::position const& pos)
-{
-    error::unexpectedToken(pos, "[");
-}
-
-void AutomationBase::pushOpenBrace(AutomationStack&, misc::position const& pos)
-{
-    error::unexpectedToken(pos, "{");
-}
-
-void AutomationBase::matchClosing(AutomationStack&, Token const& closer)
-{
-    error::unexpectedToken(closer.pos, closer.image);
-}
-
-void AutomationBase::pushColon(AutomationStack&, misc::position const& pos)
-{
-    error::unexpectedToken(pos, ":");
-}
-
-void AutomationBase::pushPropertySeparator(AutomationStack&, misc::position const& pos)
-{
-    error::unexpectedToken(pos, "::");
-}
-
-void AutomationBase::pushComma(AutomationStack&, misc::position const& pos)
-{
-    error::unexpectedToken(pos, ",");
-}
-
-void AutomationBase::pushIf(AutomationStack&, misc::position const& pos)
-{
-    error::unexpectedToken(pos, "if");
-}
-
-void AutomationBase::pushElse(AutomationStack&, misc::position const& pos)
-{
-    error::unexpectedToken(pos, "else");
+    std::for_each(types.begin()
+                , types.end()
+                , [&](std::pair<TokenType, std::pair<AutomationCreator const&, bool>> t)
+                  {
+                      TokenType tp(t.first);
+                      AutomationCreator const& creator(t.second.first);
+                      bool shiftToken(t.second.second);
+                      _actions[tp] = [=](AutomationStack& stack, TypedToken const& token)
+                                     {
+                                         stack.push(creator(token));
+                                         if (shiftToken) {
+                                             stack.top()->nextToken(stack, token);
+                                         }
+                                     };
+                  });
 }
 
 void ClauseStackWrapper::pushBlockReceiver(util::sref<AutomationBase> blockRecr)
