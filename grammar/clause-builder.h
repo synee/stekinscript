@@ -24,11 +24,6 @@ namespace grammar {
                      , misc::position const& pos
                      , std::vector<std::string> const& names
                      , std::vector<util::sptr<Token>> const& sequence);
-
-        void addFunction(int indent_len
-                       , misc::position const& pos
-                       , std::string const& name
-                       , std::vector<std::string> const& params);
         void addIfnot(int indent_len
                     , misc::position const& pos
                     , std::vector<util::sptr<Token>> const& sequence);

@@ -77,6 +77,9 @@ namespace grammar {
         void pushBlockReceiver(util::sref<AutomationBase> blockRecr);
         void pushIfClause(util::sptr<Expression const> predicate);
         void pushElseClause(misc::position const& else_pos);
+        void pushFuncClause(misc::position const& pos
+                          , std::string name
+                          , std::vector<std::string> const& params);
     private:
         int const _last_indent;
         AutomationStack& _stack;

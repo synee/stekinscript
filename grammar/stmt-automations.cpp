@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <semantic/function.h>
 #include <report/errors.h>
 
@@ -33,6 +35,10 @@ ExprStmtAutomation::ExprStmtAutomation(util::sref<ClauseBase> clause)
     _actions[ELSE] = [](AutomationStack& stack, TypedToken const& token)
                      {
                          stack.replace(util::mkptr(new ElseAutomation(token.pos)));
+                     };
+    _actions[FUNC] = [](AutomationStack& stack, TypedToken const&)
+                     {
+                         stack.replace(util::mkptr(new FunctionAutomation));
                      };
     _actions[COLON] = [&](AutomationStack& stack, TypedToken const& token)
                       {
@@ -117,6 +123,46 @@ void ElseAutomation::finish(
                 ClauseStackWrapper& wrapper, AutomationStack& stack, misc::position const&)
 {
     wrapper.pushElseClause(else_pos);
+    stack.pop();
+}
+
+void FunctionAutomation::pushFactor(
+                AutomationStack&, util::sptr<Expression const> factor, std::string const& image)
+{
+    if (!_before_open_paren) {
+        error::unexpectedToken(factor->pos, image);
+        return;
+    }
+    _before_open_paren = false;
+    _pos = factor->pos;
+    _func_name = factor->reduceAsName();
+    _actions[OPEN_PAREN] = [=](AutomationStack& stack, TypedToken const&)
+                           {
+                               _actions[OPEN_PAREN] = AutomationBase::discardToken;
+                               stack.push(util::mkptr(new ExprListAutomation));
+                           };
+}
+
+void FunctionAutomation::accepted(AutomationStack&, std::vector<util::sptr<Expression const>> list)
+{
+    std::for_each(list.begin()
+                , list.end()
+                , [&](util::sptr<Expression const> const& param)
+                  {
+                      _params.push_back(param->reduceAsName());
+                  });
+    _finished = true;
+}
+
+bool FunctionAutomation::finishOnBreak(bool) const
+{
+    return _finished;
+}
+
+void FunctionAutomation::finish(
+                ClauseStackWrapper& wrapper, AutomationStack& stack, misc::position const&)
+{
+    wrapper.pushFuncClause(_pos, _func_name, _params);
     stack.pop();
 }
 

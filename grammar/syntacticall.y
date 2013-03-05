@@ -20,7 +20,6 @@
 
 %type <names_type> name_list
 %type <names_type> additional_name
-%type <names_type> param_list
 %type <names_type> member_name
 
 %type <token_type> token
@@ -62,8 +61,6 @@ eol:
 stmt_list:
     stmt_list stmt {}
     |
-    stmt_list clue {}
-    |
     {}
 ;
 
@@ -75,10 +72,6 @@ stmt:
     import {}
     |
     export {}
-;
-
-clue:
-    func_clue {}
     |
     ifnot_clue {}
 ;
@@ -133,13 +126,6 @@ member_name:
     }
 ;
 
-func_clue:
-    indent KW_FUNC ident '(' param_list ')' eol
-    {
-        grammar::builder.addFunction($1, misc::position($7), $3->deliver(), $5->deliver());
-    }
-;
-
 token_sequence:
     token_sequence token
     {
@@ -153,6 +139,11 @@ token_sequence:
 ;
 
 token:
+    KW_FUNC
+    {
+        $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::FUNC);
+    }
+    |
     KW_IF
     {
         $$ = new grammar::TypedToken(grammar::here(), yytext, grammar::IF);
@@ -311,17 +302,6 @@ name_list:
 
 additional_name:
     name_list ','
-    {
-        $$ = $1;
-    }
-    |
-    {
-        $$ = new grammar::NameList;
-    }
-;
-
-param_list:
-    name_list
     {
         $$ = $1;
     }

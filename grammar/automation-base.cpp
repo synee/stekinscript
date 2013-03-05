@@ -134,3 +134,11 @@ void ClauseStackWrapper::pushElseClause(misc::position const& else_pos)
     util::sref<ClauseBase> parent(*_clauses.back());
     _clauses.push_back(util::mkptr(new ElseClause(_last_indent, else_pos, parent)));
 }
+
+void ClauseStackWrapper::pushFuncClause(misc::position const& pos
+                                      , std::string name
+                                      , std::vector<std::string> const& params)
+{
+    util::sref<ClauseBase> parent(*_clauses.back());
+    _clauses.push_back(util::mkptr(new FunctionClause(_last_indent, pos, name, params, parent)));
+}

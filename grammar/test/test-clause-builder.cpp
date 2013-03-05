@@ -1,8 +1,3 @@
-#include <gtest/gtest.h>
-
-#include <test/phony-errors.h>
-
-#include "test-common.h"
 #include "test-clauses.h"
 #include "../function.h"
 #include "../stmt-nodes.h"
@@ -142,10 +137,19 @@ TEST_F(ClauseBuilderTest, ClauseBuilder)
                 new grammar::FactorToken(item_pos0, util::mkptr(
                                 new grammar::Identifier(item_pos0, "skystrike")), "skystrike")))
                                               ->deliver());
-    builder0.addFunction(0
-                       , item_pos1
-                       , "goldenstrike_arch"
-                       , std::vector<std::string>({ "amn", "tir" }));
+    builder0.addArith(0, item_pos1, (new grammar::TokenSequence(
+                    new grammar::TypedToken(item_pos1, "func", grammar::FUNC)))
+                  ->add(new grammar::FactorToken(item_pos1, util::mkptr(
+                                new grammar::Identifier(item_pos1, "goldenstrike_arch"))
+                          , "goldenstrike_arch"))
+                  ->add(open(item_pos1, "("))
+                  ->add(new grammar::FactorToken(item_pos1, util::mkptr(
+                                new grammar::Identifier(item_pos1, "amn")), "amn"))
+                  ->add(comma(item_pos1))
+                  ->add(new grammar::FactorToken(item_pos1, util::mkptr(
+                                new grammar::Identifier(item_pos1, "tir")), "tir"))
+                  ->add(close(item_pos1, ")"))
+                  ->deliver());
         builder0.addArith(1, item_pos1, (new grammar::TokenSequence(
                 new grammar::FactorToken(item_pos1, util::mkptr(
                                 new grammar::Identifier(item_pos1, "widowmaker")), "widowmaker")))

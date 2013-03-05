@@ -54,6 +54,29 @@ namespace grammar {
         misc::position const else_pos;
     };
 
+    struct FunctionAutomation
+        : AutomationBase
+    {
+        FunctionAutomation()
+            : _before_open_paren(true)
+            , _finished(false)
+        {}
+
+        void pushFactor(AutomationStack&
+                      , util::sptr<Expression const> factor
+                      , std::string const& image);
+        void accepted(AutomationStack&, util::sptr<Expression const>) {};
+        void accepted(AutomationStack&, std::vector<util::sptr<Expression const>> list);
+        bool finishOnBreak(bool) const;
+        void finish(ClauseStackWrapper& wrapper, AutomationStack& stack, misc::position const&);
+    private:
+        bool _before_open_paren;
+        bool _finished;
+        misc::position _pos;
+        std::string _func_name;
+        std::vector<std::string> _params;
+    };
+
     struct ExprReceiver
         : AutomationBase
     {

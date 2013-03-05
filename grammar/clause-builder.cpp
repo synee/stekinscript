@@ -82,18 +82,6 @@ void ClauseBuilder::addExport(int indent_len
     _pushSequence(pos, sequence);
 }
 
-void ClauseBuilder::addFunction(int indent_len
-                              , misc::position const& pos
-                              , std::string const& name
-                              , std::vector<std::string> const& params)
-{
-    if (!_prepareLevel(indent_len, pos, "func")) {
-        return;
-    }
-    _clauses.push_back(util::mkptr(
-                new FunctionClause(indent_len, pos, name, params, *_clauses.back())));
-}
-
 void ClauseBuilder::addIfnot(int indent_len
                            , misc::position const& pos
                            , std::vector<util::sptr<Token>> const& sequence)
