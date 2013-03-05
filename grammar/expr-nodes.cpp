@@ -38,6 +38,20 @@ util::sptr<semantic::Expression const> BinaryOp::reduceAsExpr() const
         return util::mkptr(new semantic::ListAppend(
                             pos, lhs->reduceAsExpr(), rhs->reduceAsExpr()));
     }
+    if ("||" == op_img) {
+        return util::mkptr(new semantic::Conditional(
+                          pos
+                        , lhs->reduceAsExpr()
+                        , util::mkptr(new semantic::BoolLiteral(pos, true))
+                        , rhs->reduceAsExpr()));
+    }
+    if ("&&" == op_img) {
+        return util::mkptr(new semantic::Conditional(
+                          pos
+                        , lhs->reduceAsExpr()
+                        , rhs->reduceAsExpr()
+                        , util::mkptr(new semantic::BoolLiteral(pos, false))));
+    }
     return util::mkptr(new semantic::BinaryOp(
                             pos, lhs->reduceAsExpr(), op_img, rhs->reduceAsExpr()));
 }
