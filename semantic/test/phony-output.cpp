@@ -173,12 +173,6 @@ void ThisDeclaration::write(std::ostream&) const
     DataTree::actualOne()(DEC_THIS);
 }
 
-void PipelineReturn::write(std::ostream&) const
-{
-    DataTree::actualOne()(PIPELINE_RETURN);
-    expr->str();
-}
-
 void PipelineContinue::write(std::ostream&) const
 {
     DataTree::actualOne()(PIPELINE_CONTINUE);

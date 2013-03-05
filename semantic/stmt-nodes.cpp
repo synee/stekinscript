@@ -2,9 +2,9 @@
 
 #include <output/function.h>
 #include <output/stmt-nodes.h>
+#include <output/expr-nodes.h>
 
 #include "stmt-nodes.h"
-#include "expr-nodes.h"
 #include "function.h"
 #include "compiling-space.h"
 
@@ -58,18 +58,14 @@ bool NameDef::isAsync() const
 
 void Return::compile(BaseCompilingSpace& space) const
 {
-    util::sptr<output::Statement const> ret(space.compileRet(ret_val));
-    space.block()->addStmt(std::move(ret));
+    space.ret(pos);
+    util::sptr<output::Expression const> ret(ret_val->compile(space));
+    space.block()->addStmt(util::mkptr(new output::Return(std::move(ret))));
 }
 
 bool Return::isAsync() const
 {
     return ret_val->isAsync();
-}
-
-void ReturnNothing::compile(BaseCompilingSpace& space) const
-{
-    space.block()->addStmt(space.compileRet(util::mkptr(new Undefined(pos))));
 }
 
 void Import::compile(BaseCompilingSpace& space) const

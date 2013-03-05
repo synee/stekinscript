@@ -43,13 +43,7 @@ console.log(ls |:
 
 console.log(ls |:
     sqr: $ * $
-    # oh lost return
-)
-
-console.log(ls |:
-    sqr: $ * $
-    if sqr % 3 = 0
-        return sqr
+    # oh lost push
 )
 
 console.log('End')

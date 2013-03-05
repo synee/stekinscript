@@ -5,6 +5,7 @@
 
 #include "filter.h"
 #include "stmt-nodes.h"
+#include "expr-nodes.h"
 #include "function.h"
 #include "compiling-space.h"
 
@@ -21,7 +22,7 @@ void Filter::addReturnNothing(misc::position const& pos)
 {
     _checkNotTerminated(pos);
     _setTerminated(pos);
-    _block.addStmt(util::mkptr(new ReturnNothing(pos)));
+    _block.addStmt(util::mkptr(new Return(pos, util::mkptr(new Undefined(pos)))));
 }
 
 void Filter::addArith(misc::position const& pos, util::sptr<Expression const> expr)

@@ -195,7 +195,7 @@ TEST_F(PipelinesTest, PipeBlock)
                     pos, "scarlet", util::mkptr(new semantic::Reference(pos, "sakuya")))));
 
     args.append(util::mkptr(new semantic::IntLiteral(pos, 20130204)));
-    pipe_sec.addStmt(util::mkptr(new semantic::Return(
+    pipe_sec.addStmt(util::mkptr(new semantic::Arithmetics(
                     pos, util::mkptr(new semantic::Call(
                                     pos
                                   , util::mkptr(new semantic::Reference(pos, "scarlet"))
@@ -216,7 +216,7 @@ TEST_F(PipelinesTest, PipeBlock)
                         (FWD_DECL, "scarlet")
                         (NAME_DEF, "scarlet")
                             (pos, REFERENCE, "sakuya")
-                        (PIPELINE_RETURN)
+                        (ARITHMETICS)
                             (pos, CALL, 1)
                                 (pos, REFERENCE, "scarlet")
                                 (pos, INTEGER, "20130204")
@@ -287,7 +287,7 @@ TEST_F(PipelinesTest, PipeAsyncBlock)
     ;
 }
 
-TEST_F(PipelinesTest, PipeAsyncReturnInSyncContext)
+TEST_F(PipelinesTest, ReturnInPipelineContext)
 {
     misc::position pos(5);
     misc::position pos_a(500);
@@ -302,8 +302,8 @@ TEST_F(PipelinesTest, PipeAsyncReturnInSyncContext)
 
     args.append(util::mkptr(new semantic::IntLiteral(pos, 1654)));
     pipe_sec.addStmt(util::mkptr(new semantic::Return(
-                    pos, util::mkptr(new semantic::AsyncCall(
-                                    pos_a
+                    pos_a, util::mkptr(new semantic::AsyncCall(
+                                    pos
                                   , util::mkptr(new semantic::Reference(pos, "marisa"))
                                   , util::ptrarr<semantic::Expression const>()
                                   , std::vector<std::string>({ "x" })
@@ -314,7 +314,7 @@ TEST_F(PipelinesTest, PipeAsyncReturnInSyncContext)
     compile(filter, space.sym());
     ASSERT_TRUE(error::hasError());
 
-    std::vector<ReturnNotSyncRec> recs(getReturnNotSyncRecs());
+    std::vector<ReturnNotAllowedInPipeRec> recs(getReturnNotAllowedInPipeRecs());
     ASSERT_EQ(1, recs.size());
     ASSERT_EQ(pos_a, recs[0].pos);
 }

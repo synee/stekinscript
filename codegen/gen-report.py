@@ -331,10 +331,10 @@ std::cerr << "    condition type is not boolean, actual type: " << actual_type <
 , Param(POS_TYPE, 'pos'), Param(STR_TYPE, 'actual_type')),
 
 ReportFunc(
-'returnNotSync',
+'returnNotAllowedInPipe',
 lineno() + '''
 std::cerr << pos.str() << std::endl;
-std::cerr << "    return statement not in synchronous context." << std::endl;
+std::cerr << "    return statement not allowed in pipeline." << std::endl;
 '''
 , Param(POS_TYPE, 'pos')),
 

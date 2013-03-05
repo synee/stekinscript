@@ -15,18 +15,6 @@ namespace output {
         std::string str() const;
     };
 
-    struct PipelineReturn
-        : Statement
-    {
-        explicit PipelineReturn(util::sptr<Expression const> e)
-            : expr(std::move(e))
-        {}
-
-        void write(std::ostream& os) const;
-
-        util::sptr<Expression const> const expr;
-    };
-
     struct PipelineContinue
         : Statement
     {

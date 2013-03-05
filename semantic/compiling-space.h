@@ -56,8 +56,7 @@ namespace semantic {
         void setAsyncSpace(util::sref<output::Block> block);
         virtual void referenceThis() = 0;
 
-        virtual util::sptr<output::Statement const> compileRet(
-                                            util::sptr<Expression const> const& val);
+        virtual void ret(misc::position const&) {}
 
         virtual util::sptr<output::Block> deliver();
     private:
@@ -93,20 +92,10 @@ namespace semantic {
         explicit PipelineSpace(BaseCompilingSpace& ext_space);
 
         bool inPipe() const { return true; }
-
+        void ret(misc::position const& pos);
         void referenceThis();
     private:
         BaseCompilingSpace& _ext_space;
-    };
-
-    struct SyncPipelineSpace
-        : PipelineSpace
-    {
-        explicit SyncPipelineSpace(BaseCompilingSpace& ext_space)
-            : PipelineSpace(ext_space)
-        {}
-
-        util::sptr<output::Statement const> compileRet(util::sptr<Expression const> const& val);
     };
 
     struct AsyncPipelineSpace
@@ -116,7 +105,6 @@ namespace semantic {
             : PipelineSpace(ext_space)
         {}
 
-        util::sptr<output::Statement const> compileRet(util::sptr<Expression const> const& val);
         util::sptr<output::Block> deliver();
     };
 
@@ -128,7 +116,7 @@ namespace semantic {
         bool inPipe() const;
 
         void referenceThis();
-        util::sptr<output::Statement const> compileRet(util::sptr<Expression const> const& val);
+        void ret(misc::position const& pos);
     private:
         BaseCompilingSpace& _ext_space;
     };

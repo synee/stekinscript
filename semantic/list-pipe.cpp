@@ -41,7 +41,7 @@ util::sptr<output::Expression const> Pipeline::_compileSync(BaseCompilingSpace& 
 {
     util::sptr<output::Expression const> clist(list->compile(space));
     return util::mkptr(new output::SyncPipeline(
-                        pos, std::move(clist), section.compile(SyncPipelineSpace(space))));
+                        pos, std::move(clist), section.compile(PipelineSpace(space))));
 }
 
 static Block pushElementToResult(util::sptr<Expression const> sec)

@@ -88,7 +88,6 @@ namespace test {
     extern NodeType const ASYNC_PIPE_RESULT;
     extern NodeType const ASYNC_PIPELINE;
     extern NodeType const SYNC_PIPELINE;
-    extern NodeType const PIPELINE_RETURN;
     extern NodeType const PIPELINE_CONTINUE;
 
     extern NodeType const LIST_SLICE;
@@ -107,6 +106,7 @@ namespace test {
     extern NodeType const EXPORT_VALUE;
     extern NodeType const ATTR_SET;
     extern NodeType const DEC_THIS;
+    extern NodeType const BRANCH;
 
     extern NodeType const FUNCTION;
     extern NodeType const PARAMETER;
@@ -115,8 +115,6 @@ namespace test {
 
     extern NodeType const SCOPE_BEGIN;
     extern NodeType const SCOPE_END;
-
-    extern NodeType const BRANCH;
 
     struct SemanticTest
         : testing::Test

@@ -64,6 +64,19 @@ namespace {
         Block const alternative;
     };
 
+    struct ReturnNothing
+        : Statement
+    {
+        explicit ReturnNothing(misc::position const& pos)
+            : Statement(pos)
+        {}
+
+        void compile(BaseCompilingSpace&) const
+        {
+            DataTree::actualOne()(pos, RETURN_NOTHING);
+        }
+    };
+
 }
 
 util::sptr<output::Function const> Function::compile(util::sref<SymbolTable>) const
@@ -245,11 +258,6 @@ void Return::compile(BaseCompilingSpace&) const
 {
     DataTree::actualOne()(pos, RETURN);
     ret_val->compile(nulSpace());
-}
-
-void ReturnNothing::compile(BaseCompilingSpace&) const
-{
-    DataTree::actualOne()(pos, RETURN_NOTHING);
 }
 
 util::sptr<output::Expression const> PreUnaryOp::compile(BaseCompilingSpace&) const
@@ -490,12 +498,6 @@ BaseCompilingSpace::BaseCompilingSpace(util::sptr<SymbolTable>)
     , _main_block(nullptr)
     , _current_block(nullptr)
 {}
-
-util::sptr<output::Statement const> BaseCompilingSpace::compileRet(
-                                            util::sptr<Expression const> const&)
-{
-    return util::sptr<output::Statement const>(nullptr);
-}
 
 util::sptr<output::Block> BaseCompilingSpace::deliver()
 {

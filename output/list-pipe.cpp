@@ -15,17 +15,6 @@ static std::string const ASYNC_MAPPER_CONTINUE(
 "return $next($index + 1, $result);\n"
 );
 
-static std::string const SYNC_PIPELINE_RETURN(
-"return [1, #EXPRESSION];\n"
-);
-
-void PipelineReturn::write(std::ostream& os) const
-{
-    os << util::replace_all(
-            SYNC_PIPELINE_RETURN
-                , "#EXPRESSION", expr->str());
-}
-
 void PipelineContinue::write(std::ostream& os) const
 {
     os << ASYNC_MAPPER_CONTINUE;
@@ -70,18 +59,13 @@ static std::string const SYNC_PIPE(
 "    var $result = [];\n"
 "    var $ind = 0;\n"
 "    var $next = function() {};\n"
-"    var $pipeRet;\n"
 "    for (var $k in $list) {\n"
 "        if ($ind === $list.length) {\n"
 "            break;\n"
 "        }\n"
-"        $pipeRet = (function ($index, $key, $element) {\n"
+"        (function ($index, $key, $element) {\n"
 "           #SECTION\n"
-"           return [0];\n"
 "        })($ind, $k, $list[$k]);\n"
-"        switch ($pipeRet[0]) {\n"
-"            case 1: return $pipeRet[1];\n"
-"        }\n"
 "        ++$ind;\n"
 "    }\n"
 "    return $result;\n"
