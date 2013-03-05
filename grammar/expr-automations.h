@@ -98,7 +98,11 @@ namespace grammar {
     struct ExprListAutomation
         : AutomationBase
     {
-        ExprListAutomation();
+        explicit ExprListAutomation(TokenType closer_type);
+
+        ExprListAutomation()
+            : ExprListAutomation(CLOSE_PAREN)
+        {}
 
         void activated(AutomationStack& stack);
         void accepted(AutomationStack&, util::sptr<Expression const> expr);
@@ -107,15 +111,17 @@ namespace grammar {
     protected:
         std::vector<util::sptr<Expression const>> _list;
         void _pushComma(AutomationStack& stack, misc::position const& pos);
-        void _matchCloseParen(AutomationStack& stack);
+        virtual void _matchClose(AutomationStack& stack, misc::position const& pos);
     };
 
     struct ListLiteralAutomation
         : ExprListAutomation
     {
-        ListLiteralAutomation();
+        ListLiteralAutomation()
+            : ExprListAutomation(CLOSE_BRACKET)
+        {}
     private:
-        void _matchCloseBracket(AutomationStack& stack, misc::position const& pos);
+        void _matchClose(AutomationStack& stack, misc::position const& pos);
     };
 
     struct NestedOrParamsAutomation
@@ -145,9 +151,11 @@ namespace grammar {
     struct BracketedExprAutomation
         : ExprListAutomation
     {
-        BracketedExprAutomation();
+        BracketedExprAutomation()
+            : ExprListAutomation(CLOSE_BRACKET)
+        {}
     private:
-        void _matchCloseBracket(AutomationStack& stack, Token const& closer);
+        void _matchClose(AutomationStack& stack, misc::position const& pos);
     };
 
     struct DictAutomation

@@ -555,15 +555,15 @@ void ArithAutomation::_pushOpenBrace(AutomationStack& stack, misc::position cons
     error::unexpectedToken(pos, "{");
 }
 
-ExprListAutomation::ExprListAutomation()
+ExprListAutomation::ExprListAutomation(TokenType closer_type)
 {
     _actions[COMMA] = [&](AutomationStack& stack, Token const& token)
                       {
                           _pushComma(stack, token.pos);
                       };
-    _actions[CLOSE_PAREN] = [&](AutomationStack& stack, Token const&)
+    _actions[closer_type] = [&](AutomationStack& stack, Token const& token)
                             {
-                                _matchCloseParen(stack);
+                                _matchClose(stack, token.pos);
                             };
 }
 
@@ -582,7 +582,7 @@ static void checkExprListNotEmpty(std::vector<util::sptr<Expression const>> cons
     }
 }
 
-void ExprListAutomation::_matchCloseParen(AutomationStack& stack)
+void ExprListAutomation::_matchClose(AutomationStack& stack, misc::position const&)
 {
     removeLastEmpty(_list);
     checkExprListNotEmpty(_list);
@@ -599,15 +599,7 @@ void ExprListAutomation::_pushComma(AutomationStack& stack, misc::position const
     activated(stack);
 }
 
-ListLiteralAutomation::ListLiteralAutomation()
-{
-    _actions[CLOSE_BRACKET] = [&](AutomationStack& stack, Token const& token)
-                              {
-                                  _matchCloseBracket(stack, token.pos);
-                              };
-}
-
-void ListLiteralAutomation::_matchCloseBracket(AutomationStack& stack, misc::position const& pos)
+void ListLiteralAutomation::_matchClose(AutomationStack& stack, misc::position const& pos)
 {
     removeLastEmpty(_list);
     checkExprListNotEmpty(_list);
@@ -773,20 +765,11 @@ bool NestedOrParamsAutomation::_afterColon() const
     return !(_wait_for_closing || _wait_for_colon);
 }
 
-BracketedExprAutomation::BracketedExprAutomation()
-{
-    _actions[CLOSE_PAREN] = AutomationBase::discardToken;
-    _actions[CLOSE_BRACKET] = [&](AutomationStack& stack, TypedToken const& token)
-                              {
-                                  _matchCloseBracket(stack, token);
-                              };
-}
-
-void BracketedExprAutomation::_matchCloseBracket(AutomationStack& stack, Token const& closer)
+void BracketedExprAutomation::_matchClose(AutomationStack& stack, misc::position const& pos)
 {
     if (_list.size() > 3) {
-        error::tooManySliceParts(closer.pos);
-        stack.reduced(util::mkptr(new EmptyExpr(closer.pos)));
+        error::tooManySliceParts(pos);
+        stack.reduced(util::mkptr(new EmptyExpr(pos)));
         return;
     }
     if (_list.size() == 1) {
@@ -797,10 +780,10 @@ void BracketedExprAutomation::_matchCloseBracket(AutomationStack& stack, Token c
         return;
     }
     if (_list.size() == 3 && _list[2]->empty()) {
-        error::sliceStepOmitted(closer.pos);
+        error::sliceStepOmitted(pos);
     }
     if (_list.size() == 2) {
-        _list.push_back(util::mkptr(new EmptyExpr(closer.pos)));
+        _list.push_back(util::mkptr(new EmptyExpr(pos)));
     }
     stack.reduced(std::move(_list));
 }
