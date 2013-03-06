@@ -499,6 +499,11 @@ BaseCompilingSpace::BaseCompilingSpace(util::sptr<SymbolTable>)
     , _current_block(nullptr)
 {}
 
+util::sptr<output::Expression const> BaseCompilingSpace::ret(util::sref<Expression const>)
+{
+    return nulOutputExpr();
+}
+
 util::sptr<output::Block> BaseCompilingSpace::deliver()
 {
     return util::sptr<output::Block>(nullptr);

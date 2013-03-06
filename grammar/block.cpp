@@ -22,8 +22,7 @@ void Block::addFunc(util::sptr<Function const> Function)
 void Block::acceptElse(misc::position const& else_pos, Block&& block)
 {
     if (_stmts.empty()) {
-        error::elseNotMatchIf(else_pos);
-        return;
+        return error::elseNotMatchIf(else_pos);
     }
     _stmts.back()->acceptElse(else_pos, std::move(block));
 }

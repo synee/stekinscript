@@ -328,6 +328,11 @@ void BaseCompilingSpace::setAsyncSpace(util::sref<output::Block> block)
     _current_block = block;
 }
 
+util::sptr<output::Expression const> BaseCompilingSpace::ret(util::sref<Expression const> val)
+{
+    return val->compile(*this);
+}
+
 util::sptr<output::Block> BaseCompilingSpace::deliver()
 {
     _main_block->setLocalDecls(_symbols->localNames());
@@ -372,9 +377,10 @@ void PipelineSpace::referenceThis()
     _ext_space.referenceThis();
 }
 
-void PipelineSpace::ret(misc::position const& pos)
+util::sptr<output::Expression const> PipelineSpace::ret(util::sref<Expression const> val)
 {
-    error::returnNotAllowedInPipe(pos);
+    error::returnNotAllowedInPipe(val->pos);
+    return BaseCompilingSpace::ret(val);
 }
 
 util::sptr<output::Block> AsyncPipelineSpace::deliver()
@@ -398,7 +404,7 @@ void SubCompilingSpace::referenceThis()
     _ext_space.referenceThis();
 }
 
-void SubCompilingSpace::ret(misc::position const& pos)
+util::sptr<output::Expression const> SubCompilingSpace::ret(util::sref<Expression const> val)
 {
-    return _ext_space.ret(pos);
+    return _ext_space.ret(val);
 }

@@ -302,8 +302,8 @@ TEST_F(PipelinesTest, ReturnInPipelineContext)
 
     args.append(util::mkptr(new semantic::IntLiteral(pos, 1654)));
     pipe_sec.addStmt(util::mkptr(new semantic::Return(
-                    pos_a, util::mkptr(new semantic::AsyncCall(
-                                    pos
+                    pos, util::mkptr(new semantic::AsyncCall(
+                                    pos_a
                                   , util::mkptr(new semantic::Reference(pos, "marisa"))
                                   , util::ptrarr<semantic::Expression const>()
                                   , std::vector<std::string>({ "x" })
