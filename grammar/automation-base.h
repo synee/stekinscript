@@ -79,7 +79,8 @@ namespace grammar {
         void pushElseClause(misc::position const& else_pos);
         void pushFuncClause(misc::position const& pos
                           , std::string name
-                          , std::vector<std::string> const& params);
+                          , std::vector<std::string> const& params
+                          , int async_param_index);
     private:
         int const _last_indent;
         AutomationStack& _stack;

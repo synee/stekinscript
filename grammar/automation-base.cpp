@@ -125,20 +125,20 @@ void ClauseStackWrapper::pushBlockReceiver(util::sref<AutomationBase> blockRecr)
 
 void ClauseStackWrapper::pushIfClause(util::sptr<Expression const> predicate)
 {
-    util::sref<ClauseBase> parent(*_clauses.back());
-    _clauses.push_back(util::mkptr(new IfClause(_last_indent, std::move(predicate), parent)));
+    _clauses.push_back(util::mkptr(new IfClause(
+                        _last_indent, std::move(predicate), *_clauses.back())));
 }
 
 void ClauseStackWrapper::pushElseClause(misc::position const& else_pos)
 {
-    util::sref<ClauseBase> parent(*_clauses.back());
-    _clauses.push_back(util::mkptr(new ElseClause(_last_indent, else_pos, parent)));
+    _clauses.push_back(util::mkptr(new ElseClause(_last_indent, else_pos, *_clauses.back())));
 }
 
 void ClauseStackWrapper::pushFuncClause(misc::position const& pos
                                       , std::string name
-                                      , std::vector<std::string> const& params)
+                                      , std::vector<std::string> const& params
+                                      , int async_param_index)
 {
-    util::sref<ClauseBase> parent(*_clauses.back());
-    _clauses.push_back(util::mkptr(new FunctionClause(_last_indent, pos, name, params, parent)));
+    _clauses.push_back(util::mkptr(new FunctionClause(
+                        _last_indent, pos, name, params, async_param_index, *_clauses.back())));
 }

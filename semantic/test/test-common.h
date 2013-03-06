@@ -112,6 +112,7 @@ namespace test {
     extern NodeType const PARAMETER;
     extern NodeType const FWD_DECL;
     extern NodeType const COPY_PARAM_DECL;
+    extern NodeType const REGULAR_ASYNC_RETURN;
 
     extern NodeType const SCOPE_BEGIN;
     extern NodeType const SCOPE_END;

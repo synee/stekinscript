@@ -31,7 +31,7 @@
 %token BOOL_TRUE BOOL_FALSE
 %token INT_LITERAL DOUBLE_LITERAL STRING_LITERAL TRIPLE_QUOTED_STRING_LITERAL
 %token IDENT
-%token PIPE_ELEMENT PIPE_INDEX PIPE_KEY PIPE_RESULT
+%token PIPE_ELEMENT PIPE_INDEX PIPE_KEY PIPE_RESULT REGULAR_ASYNC_PARAM
 
 %%
 
@@ -245,6 +245,13 @@ token:
     {
         misc::position here(grammar::here());
         $$ = new grammar::FactorToken(here, util::mkptr(new grammar::PipeResult(here)), yytext);
+    }
+    |
+    REGULAR_ASYNC_PARAM
+    {
+        misc::position here(grammar::here());
+        $$ = new grammar::FactorToken(
+                            here, util::mkptr(new grammar::RegularAsyncParam(here)), yytext);
     }
     |
     '('

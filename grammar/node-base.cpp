@@ -27,6 +27,11 @@ std::string Expression::reduceAsName() const
     return "";
 }
 
+void Expression::reduceAsParam(ParamReducingEnv& env, int) const
+{
+    return env.addParam(reduceAsName());
+}
+
 std::string Expression::reduceAsProperty() const
 {
     return reduceAsName();

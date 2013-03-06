@@ -227,6 +227,10 @@ while {
     return PIPE_RESULT;
 }
 
+[%][%] {
+    return REGULAR_ASYNC_PARAM;
+}
+
 [-+*/%!=<>\|~&^] {
     return OPERATOR;
 }

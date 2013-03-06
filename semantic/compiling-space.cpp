@@ -367,6 +367,13 @@ util::sptr<output::Block> CompilingSpace::deliver()
     return BaseCompilingSpace::deliver();
 }
 
+util::sptr<output::Expression const> RegularAsyncCompilingSpace::ret(
+                                        util::sref<Expression const> val)
+{
+    misc::position const pos(val->pos);
+    return util::mkptr(new output::RegularAsyncReturnCall(pos, val->compile(*this)));
+}
+
 PipelineSpace::PipelineSpace(BaseCompilingSpace& ext_space)
     : BaseCompilingSpace(util::mkptr(new RegularSymbolTable(ext_space.sym())))
     , _ext_space(ext_space)

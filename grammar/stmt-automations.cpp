@@ -145,12 +145,16 @@ void FunctionAutomation::pushFactor(
 
 void FunctionAutomation::accepted(AutomationStack&, std::vector<util::sptr<Expression const>> list)
 {
+    ParamReducingEnv env;
+    int index(0);
     std::for_each(list.begin()
                 , list.end()
                 , [&](util::sptr<Expression const> const& param)
                   {
-                      _params.push_back(param->reduceAsName());
+                      param->reduceAsParam(env, index++);
                   });
+    _params = env.params();
+    _async_param_index = env.asyncIndex();
     _finished = true;
 }
 
@@ -162,7 +166,7 @@ bool FunctionAutomation::finishOnBreak(bool) const
 void FunctionAutomation::finish(
                 ClauseStackWrapper& wrapper, AutomationStack& stack, misc::position const&)
 {
-    wrapper.pushFuncClause(_pos, _func_name, _params);
+    wrapper.pushFuncClause(_pos, _func_name, _params, _async_param_index);
     stack.pop();
 }
 

@@ -182,7 +182,8 @@ TEST_F(StmtNodesTest, Functions)
 {
     misc::position pos(8);
     util::sptr<semantic::Filter> filter(std::move(mkfilter()));
-    grammar::Function func0(pos, "func0", std::vector<std::string>(), std::move(grammar::Block()));
+    grammar::Function func0(
+            pos, "func0", std::vector<std::string>(), -1, std::move(grammar::Block()));
     func0.compile(*filter);
 
     grammar::Block body;
@@ -192,6 +193,7 @@ TEST_F(StmtNodesTest, Functions)
     grammar::Function func1(pos
                           , "func1"
                           , std::vector<std::string>({ "Konata", "Kagami", "Tsukasa", "Miyuki" })
+                          , -1
                           , std::move(body));
     func1.compile(*filter);
     filter->deliver().compile(semantic::CompilingSpace());
@@ -225,9 +227,9 @@ TEST_F(StmtNodesTest, Mixed)
     block_nested.addStmt(util::mkptr(new grammar::Arithmetics(
                             pos, util::mkptr(new grammar::IntLiteral(pos, "9")))));
     util::sptr<grammar::Function> func_nested0(new grammar::Function(
-                    pos, "funcn", std::vector<std::string>({ "SOS" }), std::move(block_nested)));
+                pos, "funcn", std::vector<std::string>({ "SOS" }), -1, std::move(block_nested)));
     util::sptr<grammar::Function> func_nested1(new grammar::Function(
-                    pos, "funcn", std::vector<std::string>(), std::move(grammar::Block())));
+                pos, "funcn", std::vector<std::string>(), -1, std::move(grammar::Block())));
 
     grammar::Block body;
     body.addStmt(util::mkptr(new grammar::Arithmetics(
@@ -239,6 +241,7 @@ TEST_F(StmtNodesTest, Mixed)
     grammar::Function func(pos
                          , "funco"
                          , std::vector<std::string>({ "Suzumiya", "Koizumi", "Nagato", "Asahina" })
+                         , -1
                          , std::move(body));
     func.compile(*filter);
     filter->deliver().compile(semantic::CompilingSpace());

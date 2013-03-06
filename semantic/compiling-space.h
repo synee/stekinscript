@@ -86,6 +86,18 @@ namespace semantic {
         bool _this_referenced;
     };
 
+    struct RegularAsyncCompilingSpace
+        : CompilingSpace
+    {
+        RegularAsyncCompilingSpace(misc::position const& pos
+                                 , util::sref<SymbolTable> ext_st
+                                 , std::vector<std::string> const& params)
+            : CompilingSpace(pos, ext_st, params)
+        {}
+
+        util::sptr<output::Expression const> ret(util::sref<Expression const> val);
+    };
+
     struct PipelineSpace
         : BaseCompilingSpace
     {

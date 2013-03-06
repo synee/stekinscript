@@ -97,17 +97,20 @@ namespace grammar {
                      , misc::position const& ps
                      , std::string const& func_name
                      , std::vector<std::string> const& params
+                     , int async_param_idx
                      , util::sref<ClauseBase> parent)
             : ClauseBase(indent_level)
             , pos(ps)
             , name(func_name)
             , param_names(params)
+            , async_param_index(async_param_idx)
             , _parent(parent)
         {}
 
         misc::position const pos;
         std::string const name;
         std::vector<std::string> const param_names;
+        int const async_param_index;
     private:
         util::sref<ClauseBase> const _parent;
     };

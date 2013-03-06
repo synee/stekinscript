@@ -92,12 +92,9 @@ void Filter::defName(misc::position const& pos
     _block.addStmt(util::mkptr(new NameDef(pos, name, std::move(init))));
 }
 
-void Filter::defFunc(misc::position const& pos
-                   , std::string const& name
-                   , std::vector<std::string> const& param_names
-                   , util::sptr<Filter> body)
+void Filter::defFunc(util::sptr<Function const> func)
 {
-    _block.defFunc(pos, name, param_names, std::move(body));
+    _block.addFunc(std::move(func));
 }
 
 Block Filter::deliver()

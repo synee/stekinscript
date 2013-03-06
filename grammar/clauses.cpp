@@ -102,7 +102,8 @@ void IfnotClause::acceptExpr(util::sptr<Expression const> expr)
 
 void FunctionClause::deliver()
 {
-    _parent->acceptFunc(util::mkptr(new Function(pos, name, param_names, std::move(_block))));
+    return _parent->acceptFunc(util::mkptr(
+                    new Function(pos, name, param_names, async_param_index, std::move(_block))));
 }
 
 void BlockReceiverClause::deliver()

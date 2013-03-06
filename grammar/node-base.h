@@ -32,6 +32,7 @@ namespace grammar {
 
         virtual bool empty() const;
         virtual bool isName() const;
+        virtual void reduceAsParam(ParamReducingEnv& env, int index) const;
         virtual std::string reduceAsName() const;
         virtual std::string reduceAsProperty() const;
         virtual util::sptr<semantic::Expression const> reduceAsExpr() const = 0;

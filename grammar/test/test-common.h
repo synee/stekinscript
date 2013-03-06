@@ -126,6 +126,7 @@ namespace test {
     extern NodeType const EXPORT_VALUE;
     extern NodeType const ATTR_SET;
 
+    extern NodeType const REGULAR_ASYNC_PARAM_INDEX;
     extern NodeType const FUNC_DEF;
     extern NodeType const PARAMETER;
 

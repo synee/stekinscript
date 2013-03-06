@@ -232,6 +232,14 @@ std::cerr << "    asynchronous placeholder should appear as an arugment." << std
 , Param(POS_TYPE, 'pos')),
 
 ReportFunc(
+'asyncParamNotExpr',
+lineno() + '''
+std::cerr << pos.str() << std::endl;
+std::cerr << "    asynchronous parameter should appear as an expression." << std::endl;
+'''
+, Param(POS_TYPE, 'pos')),
+
+ReportFunc(
 'moreThanOneAsyncPlaceholder',
 lineno() + '''
 std::cerr << pos.str() << std::endl;

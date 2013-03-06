@@ -335,6 +335,17 @@ namespace grammar {
         util::sptr<Expression const> const alternative;
     };
 
+    struct RegularAsyncParam
+        : Expression
+    {
+        explicit RegularAsyncParam(misc::position const& pos)
+            : Expression(pos)
+        {}
+
+        util::sptr<semantic::Expression const> reduceAsExpr() const;
+        void reduceAsParam(ParamReducingEnv& env, int index) const;
+    };
+
 }
 
 #endif /* __STEKIN_GRAMMAR_EXPRESSION_NODES_H__ */

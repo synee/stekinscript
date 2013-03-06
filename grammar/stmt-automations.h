@@ -60,6 +60,7 @@ namespace grammar {
         FunctionAutomation()
             : _before_open_paren(true)
             , _finished(false)
+            , _async_param_index(-1)
         {}
 
         void pushFactor(AutomationStack&
@@ -75,6 +76,7 @@ namespace grammar {
         misc::position _pos;
         std::string _func_name;
         std::vector<std::string> _params;
+        int _async_param_index;
     };
 
     struct ExprReceiver

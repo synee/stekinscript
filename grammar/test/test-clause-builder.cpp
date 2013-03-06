@@ -342,3 +342,64 @@ TEST_F(ClauseBuilderTest, IfReducedElseNotMatched)
     ASSERT_EQ(1, getElseNotMatchIfRecs().size());
     ASSERT_EQ(item_pos2, getElseNotMatchIfRecs()[0].else_pos);
 }
+
+TEST_F(ClauseBuilderTest, RegularAsyncFunc)
+{
+    misc::position pos(11);
+
+    grammar::ClauseBuilder builder;
+    builder.addArith(0, pos, (new grammar::TokenSequence(
+              new grammar::TypedToken(pos, "func", grammar::FUNC)))
+        ->add(id(pos, "sakura"))
+        ->add(open(pos, "("))
+        ->add(id(pos, "xiaolang"))
+        ->add(comma(pos))
+        ->add(regularAsyncParam(pos))
+        ->add(comma(pos))
+        ->add(id(pos, "tukisiro"))
+        ->add(close(pos, ")"))
+        ->deliver());
+    builder.addReturn(1, pos, (new grammar::TokenSequence(id(pos, "meiling")))->deliver());
+
+    builder.buildAndClear().compile(semantic::CompilingSpace());
+    ASSERT_FALSE(error::hasError());
+
+    DataTree::expectOne()
+        (BLOCK_BEGIN)
+            (pos, REGULAR_ASYNC_PARAM_INDEX, 1)
+            (pos, FUNC_DEF, "sakura")
+                (pos, PARAMETER, "xiaolang")
+                (pos, PARAMETER, "tukisiro")
+                (BLOCK_BEGIN)
+                    (pos, RETURN)
+                        (pos, IDENTIFIER, "meiling")
+                (BLOCK_END)
+        (BLOCK_END)
+    ;
+}
+
+TEST_F(ClauseBuilderTest, RegularAsyncParamOccurMoreThanOnce)
+{
+    misc::position pos(12);
+    misc::position pos_a(1200);
+
+    grammar::ClauseBuilder builder;
+    builder.addArith(0, pos, (new grammar::TokenSequence(
+              new grammar::TypedToken(pos, "func", grammar::FUNC)))
+        ->add(id(pos, "sion"))
+        ->add(open(pos, "("))
+        ->add(id(pos, "mion"))
+        ->add(comma(pos))
+        ->add(regularAsyncParam(pos))
+        ->add(comma(pos))
+        ->add(regularAsyncParam(pos_a))
+        ->add(close(pos, ")"))
+        ->deliver());
+    builder.addReturn(1, pos, (new grammar::TokenSequence(id(pos, "sonozaki")))->deliver());
+
+    builder.buildAndClear();
+    ASSERT_TRUE(error::hasError());
+
+    ASSERT_EQ(1, getMoreThanOneAsyncPlaceholderRecs().size());
+    ASSERT_EQ(pos_a, getMoreThanOneAsyncPlaceholderRecs()[0].pos);
+}

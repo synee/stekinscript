@@ -30,3 +30,21 @@ TEST_F(ExprNodesTest, Pipeline)
             (pos, PIPE_ELEMENT)
     ;
 }
+
+TEST_F(ExprNodesTest, RegularAsyncParamAsExpr)
+{
+    misc::position pos(2);
+    misc::position pos_a(200);
+
+    util::sptr<grammar::Expression const> p(new grammar::Pipeline(
+                pos
+              , util::mkptr(new grammar::Identifier(pos, "x20130306"))
+              , "|:"
+              , util::mkptr(new grammar::RegularAsyncParam(pos_a))));
+    p->reduceAsExpr();
+    ASSERT_TRUE(error::hasError());
+
+    std::vector<AsyncParamNotExprRec> recs(getAsyncParamNotExprRecs());
+    ASSERT_EQ(1, recs.size());
+    ASSERT_EQ(pos_a, recs[0].pos);
+}

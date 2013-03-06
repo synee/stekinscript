@@ -29,13 +29,42 @@ namespace output {
             , body_stmt(std::move(b))
         {}
 
-        std::string const name;
-        std::vector<std::string> const params;
-        util::sptr<Statement const> const body_stmt;
-
         util::sref<Statement const> body() const;
         std::string mangledName() const;
         std::vector<std::string> parameters() const;
+
+        std::string const name;
+        std::vector<std::string> const params;
+        util::sptr<Statement const> const body_stmt;
+    };
+
+    struct RegularAsyncFunction
+        : RegularFunction
+    {
+        RegularAsyncFunction(std::string const& func_name
+                           , std::vector<std::string> const& params
+                           , int index
+                           , util::sptr<Statement const> body)
+            : RegularFunction(func_name, params, std::move(body))
+            , async_param_index(index)
+        {}
+
+        std::vector<std::string> parameters() const;
+
+        int const async_param_index;
+    };
+
+    struct RegularAsyncReturnCall
+        : Expression
+    {
+        RegularAsyncReturnCall(misc::position const& pos, util::sptr<Expression const> v)
+            : Expression(pos)
+            , val(std::move(v))
+        {}
+
+        std::string str() const;
+
+        util::sptr<Expression const> const val;
     };
 
     struct ConditionalCallback

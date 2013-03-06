@@ -32,9 +32,9 @@ namespace output {
             : expr(std::move(e))
         {}
 
-        util::sptr<Expression const> const expr;
-
         void write(std::ostream& os) const;
+
+        util::sptr<Expression const> const expr;
     };
 
     struct NameDef
@@ -45,10 +45,10 @@ namespace output {
             , init(std::move(i))
         {}
 
+        void write(std::ostream& os) const;
+
         std::string const name;
         util::sptr<Expression const> const init;
-
-        void write(std::ostream& os) const;
     };
 
     struct AsyncCallResultDef
@@ -58,8 +58,9 @@ namespace output {
             : async_result(std::move(ar))
         {}
 
-        util::sptr<Expression const> const async_result;
         void write(std::ostream& os) const;
+
+        util::sptr<Expression const> const async_result;
     };
 
     struct Return
@@ -69,9 +70,9 @@ namespace output {
             : ret_val(std::move(r))
         {}
 
-        util::sptr<Expression const> const ret_val;
-
         void write(std::ostream& os) const;
+
+        util::sptr<Expression const> const ret_val;
     };
 
     struct Export

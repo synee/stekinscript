@@ -240,3 +240,14 @@ util::sptr<semantic::Expression const> Conditional::reduceAsExpr() const
                                                , consequence->reduceAsExpr()
                                                , alternative->reduceAsExpr()));
 }
+
+util::sptr<semantic::Expression const> RegularAsyncParam::reduceAsExpr() const
+{
+    error::asyncParamNotExpr(pos);
+    return util::mkptr(new semantic::Undefined(pos));
+}
+
+void RegularAsyncParam::reduceAsParam(ParamReducingEnv& env, int index) const
+{
+    env.setAsync(pos, index);
+}

@@ -89,6 +89,20 @@ std::vector<std::string> RegularFunction::parameters() const
     return params;
 }
 
+std::vector<std::string> RegularAsyncFunction::parameters() const
+{
+    std::vector<std::string> p(params);
+    p.insert(p.begin() + async_param_index, "# RegularAsyncParam");
+    return p;
+}
+
+std::string RegularAsyncReturnCall::str() const
+{
+    DataTree::actualOne()(pos, REGULAR_ASYNC_RETURN);
+    val->str();
+    return "";
+}
+
 util::sref<Statement const> ConditionalCallback::body() const
 {
     return *_body;

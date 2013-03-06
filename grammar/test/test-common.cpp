@@ -119,6 +119,7 @@ NodeType const test::EXPORT("export");
 NodeType const test::EXPORT_VALUE("exported value");
 NodeType const test::ATTR_SET("attribute set");
 
+NodeType const test::REGULAR_ASYNC_PARAM_INDEX("regular asynchronous parameter index");
 NodeType const test::FUNC_DEF("func def");
 NodeType const test::PARAMETER("parameter");
 

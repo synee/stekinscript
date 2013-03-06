@@ -29,6 +29,18 @@ std::vector<std::string> RegularFunction::parameters() const
     return params;
 }
 
+std::vector<std::string> RegularAsyncFunction::parameters() const
+{
+    std::vector<std::string> p(params);
+    p.insert(p.begin() + async_param_index, "$racb");
+    return p;
+}
+
+std::string RegularAsyncReturnCall::str() const
+{
+    return formName("$racb") + "(null," + val->str() + ")";
+}
+
 util::sref<Statement const> ConditionalCallback::body() const
 {
     return *_body;
@@ -41,7 +53,7 @@ std::string ConditionalCallback::mangledName() const
 
 std::vector<std::string> ConditionalCallback::parameters() const
 {
-    return std::vector<std::string>({ "ccp" });
+    return std::vector<std::string>({ "$ccp" });
 }
 
 util::sref<Block> ConditionalCallback::bodyFlow()

@@ -55,6 +55,12 @@ namespace test {
         {
             return new grammar::TypedToken(pos, ":", grammar::COLON);
         }
+
+        grammar::Token* regularAsyncParam(misc::position const& pos)
+        {
+            return new grammar::FactorToken(
+                        pos, util::mkptr(new grammar::RegularAsyncParam(pos)), "%%");
+        }
     };
 
 }

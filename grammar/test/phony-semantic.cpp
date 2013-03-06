@@ -92,17 +92,20 @@ util::sptr<output::Function const> Function::compile(util::sref<SymbolTable>) co
     return util::sptr<output::Function const>(nullptr);
 }
 
+util::sptr<output::Function const> RegularAsyncFunction::compile(util::sref<SymbolTable>) const
+{
+    DataTree::actualOne()(pos, REGULAR_ASYNC_PARAM_INDEX, async_param_index);
+    return Function::compile(nulSymbols());
+}
+
 void Block::addStmt(util::sptr<Statement const> stmt)
 {
     _stmts.append(std::move(stmt));
 }
 
-void Block::defFunc(misc::position const& pos
-                  , std::string const& name
-                  , std::vector<std::string> const& param_names
-                  , util::sptr<Filter> body)
+void Block::addFunc(util::sptr<Function const> func)
 {
-    _funcs.append(util::mkptr(new Function(pos, name, param_names, body->deliver())));
+    _funcs.append(std::move(func));
 }
 
 util::sptr<output::Statement const> Block::compile(BaseCompilingSpace&&) const
@@ -193,12 +196,9 @@ void Filter::defName(misc::position const& pos
     _block.addStmt(util::mkptr(new NameDef(pos, name, std::move(init))));
 }
 
-void Filter::defFunc(misc::position const& pos
-                   , std::string const& name
-                   , std::vector<std::string> const& param_names
-                   , util::sptr<Filter> body)
+void Filter::defFunc(util::sptr<Function const> func)
 {
-    _block.defFunc(pos, name, param_names, std::move(body));
+    _block.addFunc(std::move(func));
 }
 
 void Arithmetics::compile(BaseCompilingSpace&) const
