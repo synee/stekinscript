@@ -8,14 +8,18 @@ namespace grammar {
 
     struct ArgReducingEnv {
         ArgReducingEnv()
-            : _async_index(-1)
+            : _regular_async(false)
+            , _async_index(-1)
         {}
 
         void setAsync(misc::position const& pos, int index, std::vector<std::string> const& ap);
+        void setRegularAsync(misc::position const& pos, int index);
         bool isAsync() const;
+        bool isRegularAsync() const;
         int asyncIndex() const;
         std::vector<std::string> const& asyncParams() const;
     private:
+        bool _regular_async;
         int _async_index;
         std::vector<std::string> _async_params;
     };

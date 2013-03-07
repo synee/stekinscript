@@ -157,15 +157,23 @@ util::sptr<semantic::Expression const> Call::reduceAsExpr() const
                      {
                          return e->reduceAsArg(args_env, index);
                      }));
-    if (args_env.isAsync()) {
-        return util::mkptr(new semantic::AsyncCall(
+    if (!args_env.isAsync()) {
+        return util::mkptr(new semantic::Call(
+                            pos, callee->reduceAsExpr(), std::move(reduced_args)));
+    }
+    if (args_env.isRegularAsync()) {
+        return util::mkptr(new semantic::RegularAsyncCall(
                     pos
                   , callee->reduceAsExpr()
                   , reduced_args.deliverRange(0, args_env.asyncIndex())
-                  , args_env.asyncParams()
                   , reduced_args.deliverRange(args_env.asyncIndex() + 1, reduced_args.size())));
     }
-    return util::mkptr(new semantic::Call(pos, callee->reduceAsExpr(), std::move(reduced_args)));
+    return util::mkptr(new semantic::AsyncCall(
+                pos
+              , callee->reduceAsExpr()
+              , reduced_args.deliverRange(0, args_env.asyncIndex())
+              , args_env.asyncParams()
+              , reduced_args.deliverRange(args_env.asyncIndex() + 1, reduced_args.size())));
 }
 
 util::sptr<semantic::Expression const> Lookup::reduceAsExpr() const
@@ -250,4 +258,11 @@ util::sptr<semantic::Expression const> RegularAsyncParam::reduceAsExpr() const
 void RegularAsyncParam::reduceAsParam(ParamReducingEnv& env, int index) const
 {
     env.setAsync(pos, index);
+}
+
+util::sptr<semantic::Expression const> RegularAsyncParam::reduceAsArg(
+                                        ArgReducingEnv& env, int index) const
+{
+    env.setRegularAsync(pos, index);
+    return util::sptr<semantic::Expression const>(nullptr);
 }

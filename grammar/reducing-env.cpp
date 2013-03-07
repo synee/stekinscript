@@ -14,9 +14,20 @@ void ArgReducingEnv::setAsync(
     _async_params = ap;
 }
 
+void ArgReducingEnv::setRegularAsync(misc::position const& pos, int index)
+{
+    setAsync(pos, index, std::vector<std::string>());
+    _regular_async = true;
+}
+
 bool ArgReducingEnv::isAsync() const
 {
     return _async_index != -1;
+}
+
+bool ArgReducingEnv::isRegularAsync() const
+{
+    return _regular_async;
 }
 
 int ArgReducingEnv::asyncIndex() const

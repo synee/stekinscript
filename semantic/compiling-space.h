@@ -2,6 +2,7 @@
 #define __STEKIN_SEMANTIC_COMPILING_SPACE_H__
 
 #include <output/block.h>
+#include <output/methods.h>
 #include <util/arrays.h>
 #include <misc/pos-type.h>
 
@@ -57,6 +58,7 @@ namespace semantic {
         virtual void referenceThis() = 0;
 
         virtual util::sptr<output::Expression const> ret(util::sref<Expression const> val);
+        virtual output::Method raiseMethod() const;
 
         virtual util::sptr<output::Block> deliver();
     private:
@@ -93,9 +95,14 @@ namespace semantic {
                                  , util::sref<SymbolTable> ext_st
                                  , std::vector<std::string> const& params)
             : CompilingSpace(pos, ext_st, params)
+            , compile_pos(pos)
         {}
 
         util::sptr<output::Expression const> ret(util::sref<Expression const> val);
+        output::Method raiseMethod() const;
+        util::sptr<output::Block> deliver();
+
+        misc::position const compile_pos;
     };
 
     struct PipelineSpace

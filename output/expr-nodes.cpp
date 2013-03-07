@@ -231,6 +231,24 @@ std::string AsyncReference::str() const
     return formAsyncRef(ref_id);
 }
 
+std::string RegularAsyncCallbackArg::str() const
+{
+    std::ostringstream body_os;
+    body->write(body_os);
+    return
+        util::replace_all(
+        util::replace_all(
+        util::replace_all(
+            "(function($cb_err, #CALLBACK_RESULT) {\n"
+            "    if ($cb_err) #RAISE_EXC\n"
+            "#BODY\n"
+            "})"
+                , "#CALLBACK_RESULT", formAsyncRef(util::id(this)))
+                , "#RAISE_EXC", raiser("$cb_err"))
+                , "#BODY", body_os.str())
+        ;
+}
+
 std::string This::str() const
 {
     return "$this";

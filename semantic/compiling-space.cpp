@@ -333,6 +333,11 @@ util::sptr<output::Expression const> BaseCompilingSpace::ret(util::sref<Expressi
     return val->compile(*this);
 }
 
+output::Method BaseCompilingSpace::raiseMethod() const
+{
+    return output::method::throwExc();
+}
+
 util::sptr<output::Block> BaseCompilingSpace::deliver()
 {
     _main_block->setLocalDecls(_symbols->localNames());
@@ -372,6 +377,19 @@ util::sptr<output::Expression const> RegularAsyncCompilingSpace::ret(
 {
     misc::position const pos(val->pos);
     return util::mkptr(new output::RegularAsyncReturnCall(pos, val->compile(*this)));
+}
+
+output::Method RegularAsyncCompilingSpace::raiseMethod() const
+{
+    return output::method::callbackExc();
+}
+
+util::sptr<output::Block> RegularAsyncCompilingSpace::deliver()
+{
+    block()->addStmt(util::mkptr(new output::Return(util::mkptr(
+                        new output::RegularAsyncReturnCall(compile_pos, util::mkptr(
+                                                          new output::Undefined(compile_pos)))))));
+    return CompilingSpace::deliver();
 }
 
 PipelineSpace::PipelineSpace(BaseCompilingSpace& ext_space)

@@ -7,6 +7,7 @@ output:block.d \
        stmt-nodes.d \
        expr-nodes.d \
        list-pipe.d \
+       methods.d \
        name-mangler.d \
        function.d
 

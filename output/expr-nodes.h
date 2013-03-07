@@ -7,7 +7,7 @@
 #include <util/arrays.h>
 
 #include "node-base.h"
-#include "fwd-decl.h"
+#include "methods.h"
 
 namespace output {
 
@@ -309,6 +309,23 @@ namespace output {
         std::string str() const;
 
         util::id const ref_id;
+    };
+
+    struct RegularAsyncCallbackArg
+        : Expression
+    {
+        RegularAsyncCallbackArg(misc::position const& pos
+                              , util::sptr<Statement const> b
+                              , Method const& r)
+            : Expression(pos)
+            , body(std::move(b))
+            , raiser(r)
+        {}
+
+        std::string str() const;
+
+        util::sptr<Statement const> const body;
+        Method const raiser;
     };
 
     struct This

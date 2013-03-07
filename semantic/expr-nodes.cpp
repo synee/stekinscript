@@ -318,6 +318,26 @@ util::sptr<output::Expression const> Lambda::compile(BaseCompilingSpace& space) 
             pos, param_names, body.compile(CompilingSpace(pos, space.sym(), param_names)), false));
 }
 
+util::sptr<output::Expression const> RegularAsyncCall::compile(BaseCompilingSpace& space) const
+{
+    util::sptr<output::Expression const> compl_callee(callee->compile(space));
+    util::ptrarr<output::Expression const> compl_fargs(compileList(former_args, space));
+    util::ptrarr<output::Expression const> compl_largs(compileList(latter_args, space));
+
+    util::sref<output::Block> current_flow(space.block());
+    util::sptr<output::Block> async_flow(new output::Block);
+    space.setAsyncSpace(pos, std::vector<std::string>(), *async_flow);
+
+    util::sptr<output::Expression const> callback(new output::RegularAsyncCallbackArg(
+                                            pos, std::move(async_flow), space.raiseMethod()));
+    util::id compl_call_id(callback.id());
+    compl_fargs.append(std::move(callback)).append(std::move(compl_largs));
+
+    current_flow->addStmt(util::mkptr(new output::Arithmetics(util::mkptr(
+                        new output::Call(pos, std::move(compl_callee), std::move(compl_fargs))))));
+    return util::mkptr(new output::AsyncReference(pos, compl_call_id));
+}
+
 util::sptr<output::Expression const> AsyncCall::compile(BaseCompilingSpace& space) const
 {
     util::sptr<output::Expression const> compl_callee(callee->compile(space));

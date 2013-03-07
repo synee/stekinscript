@@ -318,28 +318,42 @@ namespace semantic {
         Block const body;
     };
 
-    struct AsyncCall
+    struct RegularAsyncCall
         : Expression
     {
-        AsyncCall(misc::position const& pos
-                , util::sptr<Expression const> c
-                , util::ptrarr<Expression const> fargs
-                , std::vector<std::string> const ap
-                , util::ptrarr<Expression const> largs)
+        RegularAsyncCall(misc::position const& pos
+                       , util::sptr<Expression const> c
+                       , util::ptrarr<Expression const> fargs
+                       , util::ptrarr<Expression const> largs)
             : Expression(pos)
             , callee(std::move(c))
             , former_args(std::move(fargs))
-            , async_params(ap)
             , latter_args(std::move(largs))
         {}
 
         util::sptr<Expression const> const callee;
         util::ptrarr<Expression const> const former_args;
-        std::vector<std::string> const async_params;
         util::ptrarr<Expression const> const latter_args;
 
         util::sptr<output::Expression const> compile(BaseCompilingSpace& space) const;
         bool isAsync() const { return true; }
+    };
+
+    struct AsyncCall
+        : RegularAsyncCall
+    {
+        AsyncCall(misc::position const& pos
+                , util::sptr<Expression const> callee
+                , util::ptrarr<Expression const> fargs
+                , std::vector<std::string> const ap
+                , util::ptrarr<Expression const> largs)
+            : RegularAsyncCall(pos, std::move(callee), std::move(fargs), std::move(largs))
+            , async_params(ap)
+        {}
+
+        std::vector<std::string> const async_params;
+
+        util::sptr<output::Expression const> compile(BaseCompilingSpace& space) const;
     };
 
     struct This

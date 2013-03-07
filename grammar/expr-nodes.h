@@ -344,6 +344,7 @@ namespace grammar {
 
         util::sptr<semantic::Expression const> reduceAsExpr() const;
         void reduceAsParam(ParamReducingEnv& env, int index) const;
+        util::sptr<semantic::Expression const> reduceAsArg(ArgReducingEnv& env, int index) const;
     };
 
 }
