@@ -114,6 +114,9 @@ namespace test {
     extern NodeType const COPY_PARAM_DECL;
     extern NodeType const REGULAR_ASYNC_RETURN;
 
+    extern NodeType const EXC_THROW;
+    extern NodeType const EXC_CALLBACK;
+
     extern NodeType const SCOPE_BEGIN;
     extern NodeType const SCOPE_END;
 

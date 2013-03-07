@@ -50,6 +50,11 @@ struct AutomationTest
         stack->top()->nextToken(*stkptr, grammar::TypedToken(pos, op, grammar::OPERATOR));
     }
 
+    void pushRegularAsyncParam(misc::position const& pos)
+    {
+        stack->top()->pushFactor(*stkptr, util::mkptr(new grammar::RegularAsyncParam(pos)), "%%");
+    }
+
     void pushPipeSep(misc::position const& pos, std::string const& op)
     {
         stack->top()->nextToken(*stkptr, grammar::TypedToken(pos, op, grammar::PIPE_SEP));

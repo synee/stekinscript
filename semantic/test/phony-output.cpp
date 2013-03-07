@@ -5,6 +5,7 @@
 #include <output/expr-nodes.h>
 #include <output/list-pipe.h>
 #include <output/function.h>
+#include <output/methods.h>
 #include <util/string.h>
 
 #include "test-common.h"
@@ -382,6 +383,15 @@ std::string AsyncReference::str() const
     return "";
 }
 
+std::string RegularAsyncCallbackArg::str() const
+{
+    DataTree::actualOne()(pos, FUNCTION);
+    DataTree::actualOne()(PARAMETER, "# RegularAsyncCallbackParameters");
+    raiser("");
+    body->write(dummyos());
+    return "";
+}
+
 std::string AsyncPipeResult::str() const
 {
     DataTree::actualOne()(pos, ASYNC_PIPE_RESULT);
@@ -403,6 +413,24 @@ std::string SyncPipeline::str() const
     list->str();
     section->write(dummyos());
     return "";
+}
+
+Method method::throwExc()
+{
+    return [](std::string const&)
+           {
+               DataTree::actualOne()(EXC_THROW);
+               return "";
+           };
+}
+
+Method method::callbackExc()
+{
+    return [](std::string const&)
+           {
+               DataTree::actualOne()(EXC_CALLBACK);
+               return "";
+           };
 }
 
 int Block::count() const { return 0; }

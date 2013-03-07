@@ -126,6 +126,9 @@ NodeType const test::FWD_DECL("forward declaration");
 NodeType const test::COPY_PARAM_DECL("copy parameters declaration");
 NodeType const test::REGULAR_ASYNC_RETURN("regular asynchronous return call");
 
+NodeType const test::EXC_THROW("exception method throw");
+NodeType const test::EXC_CALLBACK("exception method callback");
+
 NodeType const test::SCOPE_BEGIN("scope begin");
 NodeType const test::SCOPE_END("scope end");
 

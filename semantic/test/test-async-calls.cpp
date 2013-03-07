@@ -6,6 +6,7 @@
 
 #include "test-common.h"
 #include "../expr-nodes.h"
+#include "../stmt-nodes.h"
 #include "../list-pipe.h"
 #include "../compiling-space.h"
 
@@ -423,6 +424,45 @@ TEST_F(AsyncCallsTest, AsyncCallInConditionalConsequence)
                         (pos, FUNC_INVOKE, 1)
                             (pos, BOOLEAN, "false")
                 (SCOPE_END)
+        (SCOPE_END)
+    ;
+}
+
+TEST_F(AsyncCallsTest, RegularAsyncCall)
+{
+    misc::position pos(17);
+    semantic::CompilingSpace space;
+    util::ptrarr<semantic::Expression const> fargs;
+    util::ptrarr<semantic::Expression const> largs;
+    semantic::Block body;
+
+    space.sym()->defName(pos, "yurine");
+
+    fargs.append(util::mkptr(new semantic::StringLiteral(pos, "karas")));
+    body.addStmt(util::mkptr(new semantic::Arithmetics(pos, util::mkptr(
+                        new semantic::RegularAsyncCall(
+                                        pos
+                                      , util::mkptr(new semantic::Reference(pos, "yurine"))
+                                      , std::move(fargs)
+                                      , std::move(largs))))));
+
+    body.compile(std::move(space))->write(dummyos());
+    ASSERT_FALSE(error::hasError());
+
+    DataTree::expectOne()
+        (SCOPE_BEGIN)
+            (FWD_DECL, "yurine")
+            (ARITHMETICS)
+                (pos, CALL, 2)
+                    (pos, REFERENCE, "yurine")
+                    (pos, STRING, "karas")
+                    (pos, FUNCTION)
+                        (PARAMETER, "# RegularAsyncCallbackParameters")
+                        (EXC_THROW)
+                        (SCOPE_BEGIN)
+                            (ARITHMETICS)
+                                (pos, ASYNC_REFERENCE)
+                        (SCOPE_END)
         (SCOPE_END)
     ;
 }

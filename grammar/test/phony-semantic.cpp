@@ -433,6 +433,18 @@ util::sptr<output::Expression const> Lambda::compile(BaseCompilingSpace&) const
     return nulOutputExpr();
 }
 
+util::sptr<output::Expression const> RegularAsyncCall::compile(BaseCompilingSpace&) const
+{
+    DataTree::actualOne()(pos, ASYNC_CALL, former_args.size());
+    DataTree::actualOne()(pos, CALL_BEGIN);
+    callee->compile(nulSpace());
+    DataTree::actualOne()(pos, ARGUMENTS);
+    compileList(former_args);
+    compileList(latter_args);
+    DataTree::actualOne()(pos, CALL_END);
+    return nulOutputExpr();
+}
+
 util::sptr<output::Expression const> AsyncCall::compile(BaseCompilingSpace&) const
 {
     DataTree::actualOne()(pos, ASYNC_CALL);
@@ -502,6 +514,11 @@ BaseCompilingSpace::BaseCompilingSpace(util::sptr<SymbolTable>)
 util::sptr<output::Expression const> BaseCompilingSpace::ret(util::sref<Expression const>)
 {
     return nulOutputExpr();
+}
+
+output::Method BaseCompilingSpace::raiseMethod() const
+{
+    return output::Method(nullptr);
 }
 
 util::sptr<output::Block> BaseCompilingSpace::deliver()

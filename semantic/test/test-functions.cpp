@@ -55,8 +55,57 @@ TEST_F(FunctionTest, RegularAsyncFunction)
                                 (RETURN)
                                     (pos, REGULAR_ASYNC_RETURN)
                                         (pos, REFERENCE, "light")
+                                (RETURN)
+                                    (pos, REGULAR_ASYNC_RETURN)
+                                        (pos, UNDEFINED)
                             (SCOPE_END)
                         (pos, INTEGER, "1600")
+            (SCOPE_END)
+    ;
+}
+
+TEST_F(FunctionTest, RegularAsyncCallInRegularAsyncFunction)
+{
+    misc::position pos(2);
+    semantic::CompilingSpace space;
+    util::ptrarr<semantic::Expression const> fargs;
+    util::ptrarr<semantic::Expression const> largs;
+    semantic::Block body;
+    space.sym()->defName(pos, "x20130308");
+
+    largs.append(util::mkptr(new semantic::StringLiteral(pos, "200d0308")));
+    body.addStmt(util::mkptr(new semantic::Return(pos, util::mkptr(
+                        new semantic::RegularAsyncCall(
+                                        pos
+                                      , util::mkptr(new semantic::Reference(pos, "x20130308"))
+                                      , std::move(fargs)
+                                      , std::move(largs))))));
+    semantic::RegularAsyncFunction af(
+                pos, "yukito", std::vector<std::string>({ "touya" }), 1, std::move(body));
+
+    af.compile(space.sym())->write(dummyos());
+    ASSERT_FALSE(error::hasError());
+
+    DataTree::expectOne()
+        (FUNCTION, "yukito", 2)
+            (PARAMETER, "touya")
+            (PARAMETER, "# RegularAsyncParam")
+            (SCOPE_BEGIN)
+                (ARITHMETICS)
+                    (pos, CALL, 2)
+                        (pos, REFERENCE, "x20130308")
+                        (pos, FUNCTION)
+                            (PARAMETER, "# RegularAsyncCallbackParameters")
+                            (EXC_CALLBACK)
+                            (SCOPE_BEGIN)
+                                (RETURN)
+                                    (pos, REGULAR_ASYNC_RETURN)
+                                        (pos, ASYNC_REFERENCE)
+                                (RETURN)
+                                    (pos, REGULAR_ASYNC_RETURN)
+                                        (pos, UNDEFINED)
+                            (SCOPE_END)
+                        (pos, STRING, "200d0308")
             (SCOPE_END)
     ;
 }

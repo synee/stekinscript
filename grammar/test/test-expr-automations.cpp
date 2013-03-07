@@ -1470,3 +1470,50 @@ TEST_F(AutomationTest, ParenMismatch)
     ASSERT_EQ(pos_a, recs[0].pos);
     ASSERT_EQ(")", recs[0].image);
 }
+
+TEST_F(AutomationTest, ReduceRegularAsyncCall)
+{
+    misc::position pos(36);
+    TestClause clause;
+    stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
+
+    pushIdent(pos, "yosino");
+    open(pos, "(");
+    pushIdent(pos, "saori");
+    pushComma(pos);
+    pushRegularAsyncParam(pos);
+    pushComma(pos);
+    pushIdent(pos, "kanako");
+    open(pos, "(");
+    pushRegularAsyncParam(pos);
+    pushComma(pos);
+    pushIdent(pos, "makoto");
+    close(pos, ")");
+    pushComma(pos);
+    close(pos, ")");
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
+    finish(pos);
+
+    clause.compile();
+    clause.filter->deliver().compile(semantic::CompilingSpace());
+    ASSERT_FALSE(error::hasError());
+    ASSERT_TRUE(stack->empty());
+
+    DataTree::expectOne()
+        (BLOCK_BEGIN)
+        (pos, ARITHMETICS)
+            (pos, ASYNC_CALL, 1)
+            (pos, CALL_BEGIN)
+                (pos, IDENTIFIER, "yosino")
+            (pos, ARGUMENTS)
+                (pos, IDENTIFIER, "saori")
+                (pos, ASYNC_CALL, 0)
+                (pos, CALL_BEGIN)
+                    (pos, IDENTIFIER, "kanako")
+                (pos, ARGUMENTS)
+                    (pos, IDENTIFIER, "makoto")
+                (pos, CALL_END)
+            (pos, CALL_END)
+        (BLOCK_END)
+    ;
+}
