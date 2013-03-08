@@ -97,7 +97,6 @@ NodeType const test::CALL("call");
 NodeType const test::FUNC_INVOKE("function invocation");
 NodeType const test::ASYNC_REFERENCE("asynchronous reference");
 
-NodeType const test::ASYNC_PIPE_RESULT("asynchronous pipe result");
 NodeType const test::ASYNC_PIPELINE("asynchronous pipeline");
 NodeType const test::SYNC_PIPELINE("synchronous pipeline");
 NodeType const test::PIPELINE_CONTINUE("pipeline continue");

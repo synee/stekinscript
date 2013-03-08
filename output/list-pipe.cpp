@@ -6,11 +6,6 @@
 
 using namespace output;
 
-std::string AsyncPipeResult::str() const
-{
-    return "$result";
-}
-
 static std::string const ASYNC_MAPPER_CONTINUE(
 "return $next($index + 1, $result);\n"
 );

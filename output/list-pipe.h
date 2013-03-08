@@ -5,16 +5,6 @@
 
 namespace output {
 
-    struct AsyncPipeResult
-        : Expression
-    {
-        explicit AsyncPipeResult(misc::position const& pos)
-            : Expression(pos)
-        {}
-
-        std::string str() const;
-    };
-
     struct PipelineContinue
         : Statement
     {

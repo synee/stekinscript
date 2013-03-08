@@ -85,7 +85,6 @@ namespace test {
     extern NodeType const FUNC_INVOKE;
     extern NodeType const ASYNC_REFERENCE;
 
-    extern NodeType const ASYNC_PIPE_RESULT;
     extern NodeType const ASYNC_PIPELINE;
     extern NodeType const SYNC_PIPELINE;
     extern NodeType const PIPELINE_CONTINUE;

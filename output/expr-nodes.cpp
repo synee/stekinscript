@@ -231,7 +231,7 @@ std::string RegularAsyncLambda::str() const
     std::ostringstream body_os;
     body->write(body_os);
     std::vector<std::string> params(param_names);
-    params.insert(params.begin() + async_param_index, "$racb");
+    params.insert(params.begin() + async_param_index, term::regularAsyncCallback());
     return
         util::replace_all(
         util::replace_all(

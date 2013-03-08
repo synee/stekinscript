@@ -16,6 +16,12 @@ namespace output {
     std::string formAsyncRef(util::id const& id);
     std::string formAnonymousFunc(util::id const& id);
 
+    namespace term {
+
+        std::string const& regularAsyncCallback();
+
+    }
+
 }
 
 #endif /* __STEKIN_OUTPUT_NAME_MANGLER_H__ */

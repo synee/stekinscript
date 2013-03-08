@@ -407,12 +407,6 @@ std::string RegularAsyncCallbackArg::str() const
     return "";
 }
 
-std::string AsyncPipeResult::str() const
-{
-    DataTree::actualOne()(pos, ASYNC_PIPE_RESULT);
-    return "";
-}
-
 std::string AsyncPipeline::str() const
 {
     DataTree::actualOne()(pos, ASYNC_PIPELINE);

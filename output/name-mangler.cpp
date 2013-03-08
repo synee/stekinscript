@@ -2,6 +2,8 @@
 
 #include "name-mangler.h"
 
+using namespace output;
+
 template <typename M>
 static std::vector<std::string> mapStrings(std::vector<std::string> const& in, M mapper)
 {
@@ -43,4 +45,10 @@ std::string output::formAsyncRef(util::id const& id)
 std::string output::formAnonymousFunc(util::id const& id)
 {
     return "$anf_" + id.str();
+}
+
+std::string const& term::regularAsyncCallback()
+{
+    static std::string const V("$_racb");
+    return V;
 }

@@ -32,13 +32,13 @@ std::vector<std::string> RegularFunction::parameters() const
 std::vector<std::string> RegularAsyncFunction::parameters() const
 {
     std::vector<std::string> p(params);
-    p.insert(p.begin() + async_param_index, "$racb");
+    p.insert(p.begin() + async_param_index, term::regularAsyncCallback());
     return p;
 }
 
 std::string RegularAsyncReturnCall::str() const
 {
-    return formName("$racb") + "(null," + val->str() + ")";
+    return formName(term::regularAsyncCallback()) + "(null," + val->str() + ")";
 }
 
 util::sref<Statement const> ConditionalCallback::body() const

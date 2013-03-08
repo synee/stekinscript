@@ -34,7 +34,7 @@ util::sptr<output::Expression const> Pipeline::_compileAsync(BaseCompilingSpace&
                                                         , std::move(compl_list)
                                                         , section.compile(AsyncPipelineSpace(space))
                                                         , std::move(succession_flow))))));
-    return util::mkptr(new output::AsyncPipeResult(pos));
+    return util::mkptr(new output::PipeResult(pos));
 }
 
 util::sptr<output::Expression const> Pipeline::_compileSync(BaseCompilingSpace& space) const
