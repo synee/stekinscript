@@ -263,6 +263,22 @@ namespace grammar {
         Block const body;
     };
 
+    struct RegularAsyncLambda
+        : Lambda
+    {
+        RegularAsyncLambda(misc::position const& pos
+                         , std::vector<std::string> const& params
+                         , int async_param_idx
+                         , Block body)
+            : Lambda(pos, params, std::move(body))
+            , async_param_index(async_param_idx)
+        {}
+
+        util::sptr<semantic::Expression const> reduceAsExpr() const;
+
+        int const async_param_index;
+    };
+
     struct AsyncPlaceholder
         : Expression
     {

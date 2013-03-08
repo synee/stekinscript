@@ -209,6 +209,12 @@ util::sptr<semantic::Expression const> Lambda::reduceAsExpr() const
     return util::mkptr(new semantic::Lambda(pos, param_names, body.compile()->deliver()));
 }
 
+util::sptr<semantic::Expression const> RegularAsyncLambda::reduceAsExpr() const
+{
+    return util::mkptr(new semantic::RegularAsyncLambda(
+                            pos, param_names, async_param_index, body.compile()->deliver()));
+}
+
 util::sptr<semantic::Expression const> AsyncPlaceholder::reduceAsExpr() const
 {
     error::asyncPlaceholderNotArgument(pos);

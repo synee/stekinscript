@@ -298,6 +298,26 @@ namespace output {
         bool const copy_decls;
     };
 
+    struct RegularAsyncLambda
+        : Expression
+    {
+        RegularAsyncLambda(misc::position const& pos
+                         , std::vector<std::string> const& p
+                         , int async_param_idx
+                         , util::sptr<Statement const> b)
+            : Expression(pos)
+            , param_names(p)
+            , async_param_index(async_param_idx)
+            , body(std::move(b))
+        {}
+
+        std::string str() const;
+
+        std::vector<std::string> const param_names;
+        int const async_param_index;
+        util::sptr<Statement const> const body;
+    };
+
     struct AsyncReference
         : Expression
     {

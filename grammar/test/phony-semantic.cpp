@@ -433,6 +433,12 @@ util::sptr<output::Expression const> Lambda::compile(BaseCompilingSpace&) const
     return nulOutputExpr();
 }
 
+util::sptr<output::Expression const> RegularAsyncLambda::compile(BaseCompilingSpace&) const
+{
+    DataTree::actualOne()(pos, REGULAR_ASYNC_PARAM_INDEX, async_param_index);
+    return Lambda::compile(nulSpace());
+}
+
 util::sptr<output::Expression const> RegularAsyncCall::compile(BaseCompilingSpace&) const
 {
     DataTree::actualOne()(pos, ASYNC_CALL, former_args.size());

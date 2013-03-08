@@ -693,14 +693,20 @@ void NestedOrParamsAutomation::_reduceAsLambda(AutomationStack& stack)
 void NestedOrParamsAutomation::_reduceAsLambda(
                                     AutomationStack& stack, misc::position const& pos, Block body)
 {
-    std::vector<std::string> param_names;
+    ParamReducingEnv env;
+    int index(0);
     std::for_each(_list.begin()
                 , _list.end()
-                , [&](util::sptr<Expression const> const& p)
+                , [&](util::sptr<Expression const> const& param)
                   {
-                      param_names.push_back(p->reduceAsName());
+                      param->reduceAsParam(env, index++);
                   });
-    stack.reduced(util::mkptr(new Lambda(pos, param_names, std::move(body))));
+    if (-1 == env.asyncIndex()) {
+        stack.reduced(util::mkptr(new Lambda(pos, env.params(), std::move(body))));
+    } else {
+        stack.reduced(util::mkptr(new RegularAsyncLambda(
+                                        pos, env.params(), env.asyncIndex(), std::move(body))));
+    }
 }
 
 void NestedOrParamsAutomation::accepted(AutomationStack&, util::sptr<Expression const> expr)

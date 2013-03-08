@@ -226,6 +226,21 @@ std::string Lambda::str() const
         ;
 }
 
+std::string RegularAsyncLambda::str() const
+{
+    std::ostringstream body_os;
+    body->write(body_os);
+    std::vector<std::string> params(param_names);
+    params.insert(params.begin() + async_param_index, "$racb");
+    return
+        util::replace_all(
+        util::replace_all(
+            "(function(#PARAMETERS) { #BODY })"
+                , "#PARAMETERS", util::join(",", formNames(params)))
+                , "#BODY", body_os.str())
+        ;
+}
+
 std::string AsyncReference::str() const
 {
     return formAsyncRef(ref_id);

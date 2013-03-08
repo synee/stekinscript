@@ -4,9 +4,7 @@ func less(x, y, %%)
 
 func fib(n, %%)
     setTimeout(%, 1)
-    if less(n, 2, %%)
-        return 1
-    return fib(n - 1, %%) + fib(n - 2, %%)
+    return 1 if less(n, 2, %%) else fib(n - 1, %%) + fib(n - 2, %%)
 
 func print(n, %%)
     console.log(fib(n, %%))

@@ -362,6 +362,21 @@ std::string Lambda::str() const
     return "";
 }
 
+std::string RegularAsyncLambda::str() const
+{
+    std::vector<std::string> p(param_names);
+    p.insert(p.begin() + async_param_index, "# RegularAsyncParam");
+    DataTree::actualOne()(pos, FUNCTION, p.size());
+    std::for_each(p.begin()
+                , p.end()
+                , [&](std::string const& pn)
+                  {
+                      DataTree::actualOne()(PARAMETER, pn);
+                  });
+    body->write(dummyos());
+    return "";
+}
+
 std::string This::str() const
 {
     DataTree::actualOne()(pos, THIS);

@@ -318,6 +318,13 @@ util::sptr<output::Expression const> Lambda::compile(BaseCompilingSpace& space) 
             pos, param_names, body.compile(CompilingSpace(pos, space.sym(), param_names)), false));
 }
 
+util::sptr<output::Expression const> RegularAsyncLambda::compile(BaseCompilingSpace& space) const
+{
+    return util::mkptr(new output::RegularAsyncLambda(
+            pos, param_names, async_param_index, body.compile(
+                                    RegularAsyncCompilingSpace(pos, space.sym(), param_names))));
+}
+
 util::sptr<output::Expression const> RegularAsyncCall::compile(BaseCompilingSpace& space) const
 {
     util::sptr<output::Expression const> compl_callee(callee->compile(space));
