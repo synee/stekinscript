@@ -9,7 +9,8 @@ output:block.d \
        list-pipe.d \
        methods.d \
        name-mangler.d \
-       function.d
+       function.d \
+       global.d
 
 clean:
 	rm -f $(WORKDIR)/*.o
