@@ -56,6 +56,7 @@ bool NameDef::isAsync() const
 
 void Return::compile(BaseCompilingSpace& space) const
 {
+    space.terminate();
     util::sptr<output::Expression const> ret(space.ret(*ret_val));
     space.block()->addStmt(util::mkptr(new output::Return(std::move(ret))));
 }

@@ -41,13 +41,16 @@ namespace semantic {
         explicit BaseCompilingSpace(util::sptr<SymbolTable> symbols);
 
         BaseCompilingSpace(BaseCompilingSpace&& rhs)
-            : _symbols(std::move(rhs._symbols))
+            : _terminated(rhs._terminated)
+            , _symbols(std::move(rhs._symbols))
             , _main_block(std::move(rhs._main_block))
             , _current_block(rhs._current_block)
         {}
 
         util::sref<SymbolTable> sym();
         util::sref<output::Block> block() const;
+        void terminate();
+        bool terminated() const;
 
         virtual bool inPipe() const = 0;
 
@@ -62,6 +65,7 @@ namespace semantic {
 
         virtual util::sptr<output::Block> deliver();
     private:
+        bool _terminated;
         util::sptr<SymbolTable> _symbols;
         util::sptr<output::Block> _main_block;
         util::sref<output::Block> _current_block;

@@ -295,7 +295,8 @@ namespace {
 }
 
 BaseCompilingSpace::BaseCompilingSpace(util::sptr<SymbolTable> symbols)
-    : _symbols(std::move(symbols))
+    : _terminated(false)
+    , _symbols(std::move(symbols))
     , _main_block(new output::Block)
     , _current_block(*_main_block)
 {}
@@ -308,6 +309,16 @@ util::sref<SymbolTable> BaseCompilingSpace::sym()
 util::sref<output::Block> BaseCompilingSpace::block() const
 {
     return _current_block;
+}
+
+void BaseCompilingSpace::terminate()
+{
+    _terminated = true;
+}
+
+bool BaseCompilingSpace::terminated() const
+{
+    return _terminated;
 }
 
 void BaseCompilingSpace::setAsyncSpace(misc::position const& pos
@@ -386,9 +397,11 @@ output::Method RegularAsyncCompilingSpace::raiseMethod() const
 
 util::sptr<output::Block> RegularAsyncCompilingSpace::deliver()
 {
-    block()->addStmt(util::mkptr(new output::Return(util::mkptr(
+    if (!terminated()) {
+        block()->addStmt(util::mkptr(new output::Return(util::mkptr(
                         new output::RegularAsyncReturnCall(compile_pos, util::mkptr(
                                                           new output::Undefined(compile_pos)))))));
+    }
     return CompilingSpace::deliver();
 }
 

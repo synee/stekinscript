@@ -55,9 +55,6 @@ TEST_F(FunctionTest, RegularAsyncFunction)
                                 (RETURN)
                                     (pos, REGULAR_ASYNC_RETURN)
                                         (pos, REFERENCE, "light")
-                                (RETURN)
-                                    (pos, REGULAR_ASYNC_RETURN)
-                                        (pos, UNDEFINED)
                             (SCOPE_END)
                         (pos, INTEGER, "1600")
             (SCOPE_END)
@@ -101,11 +98,41 @@ TEST_F(FunctionTest, RegularAsyncCallInRegularAsyncFunction)
                                 (RETURN)
                                     (pos, REGULAR_ASYNC_RETURN)
                                         (pos, ASYNC_REFERENCE)
-                                (RETURN)
-                                    (pos, REGULAR_ASYNC_RETURN)
-                                        (pos, UNDEFINED)
                             (SCOPE_END)
                         (pos, STRING, "200d0308")
+            (SCOPE_END)
+    ;
+}
+
+TEST_F(FunctionTest, RegularAsyncFunctionAutoReturn)
+{
+    misc::position pos(3);
+    semantic::CompilingSpace space;
+    util::ptrarr<semantic::Expression const> args;
+    semantic::Block body;
+    space.sym()->defName(pos, "setTimeout");
+
+    args.append(util::mkptr(new semantic::IntLiteral(pos, "1357")));
+    body.addStmt(util::mkptr(new semantic::Arithmetics(pos, util::mkptr(new semantic::Call(
+                                        pos
+                                      , util::mkptr(new semantic::Reference(pos, "setTimeout"))
+                                      , std::move(args))))));
+    semantic::RegularAsyncLambda af(pos, std::vector<std::string>(), 0, std::move(body));
+
+    af.compile(space)->str();
+    ASSERT_FALSE(error::hasError());
+
+    DataTree::expectOne()
+        (pos, FUNCTION, 1)
+            (PARAMETER, "# RegularAsyncParam")
+            (SCOPE_BEGIN)
+                (ARITHMETICS)
+                    (pos, CALL, 1)
+                        (pos, REFERENCE, "setTimeout")
+                        (pos, INTEGER, "1357")
+                (RETURN)
+                    (pos, REGULAR_ASYNC_RETURN)
+                        (pos, UNDEFINED)
             (SCOPE_END)
     ;
 }
