@@ -611,7 +611,7 @@ NestedOrParamsAutomation::NestedOrParamsAutomation()
                       };
     TokenAction matchClose([&](AutomationStack& stack, TypedToken const& token)
                            {
-                               _matchClose(stack, token);
+                               _matchCloser(stack, token);
                            });
     _actions[CLOSE_PAREN] = [&](AutomationStack& stack, TypedToken const& token)
                             {
@@ -620,7 +620,7 @@ NestedOrParamsAutomation::NestedOrParamsAutomation()
                                     _wait_for_closing = false;
                                     return removeLastEmpty(_list);
                                 }
-                                _matchClose(stack, token);
+                                _matchCloser(stack, token);
                             };
     _actions[CLOSE_BRACKET] = matchClose;
     _actions[CLOSE_BRACE] = matchClose;
@@ -638,7 +638,7 @@ void NestedOrParamsAutomation::_reduceAsNested(AutomationStack& stack, misc::pos
     stack.reduced(std::move(_list[0]));
 }
 
-void NestedOrParamsAutomation::_matchClose(AutomationStack& stack, TypedToken const& closer)
+void NestedOrParamsAutomation::_matchCloser(AutomationStack& stack, TypedToken const& closer)
 {
     if (_wait_for_closing) {
         return error::unexpectedToken(closer.pos, closer.image);

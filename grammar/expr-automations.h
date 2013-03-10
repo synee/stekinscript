@@ -136,7 +136,7 @@ namespace grammar {
     private:
         void _pushColon(AutomationStack& stack, misc::position const& pos);
         void _pushComma(AutomationStack& stack, TypedToken const& token);
-        void _matchClose(AutomationStack&, TypedToken const& closer);
+        void _matchCloser(AutomationStack&, TypedToken const& closer);
         bool _reduce(AutomationStack& stack, Token const& token);
         void _reduceAsNested(AutomationStack& stack, misc::position const& rp);
         void _reduceAsLambda(AutomationStack& stack);
