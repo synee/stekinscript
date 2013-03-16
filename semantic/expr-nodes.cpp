@@ -436,7 +436,7 @@ util::sptr<output::Expression const> Conditional::_compileSync(BaseCompilingSpac
                                              , alternative->compile(alter_space)));
 }
 
-static util::sptr<output::Block const> compileConditional(
+static util::sptr<output::Block const> compileConditionalBranch(
             BaseCompilingSpace& space
           , util::sref<Expression const> expr
           , util::sref<output::ConditionalCallback const> cb)
@@ -451,17 +451,18 @@ static util::sptr<output::Block const> compileConditional(
 
 util::sptr<output::Expression const> Conditional::_compileAsync(BaseCompilingSpace& space) const
 {
+    util::sptr<output::Expression const> compl_pred(predicate->compile(space));
+
     util::sptr<output::ConditionalCallback> cb(new output::ConditionalCallback);
     std::string param_name(cb->parameters()[0]);
 
-    util::sptr<output::Block const> consq_flow(compileConditional(space, *consequence, *cb));
-    util::sptr<output::Block const> alter_flow(compileConditional(space, *alternative, *cb));
+    util::sptr<output::Block const> consq_flow(compileConditionalBranch(space, *consequence, *cb));
+    util::sptr<output::Block const> alter_flow(compileConditionalBranch(space, *alternative, *cb));
 
-    util::sptr<output::Expression const> compl_pred(predicate->compile(space));
-    util::sref<output::Block> body_flow(cb->bodyFlow());
+    util::sref<output::Block> cb_body_flow(cb->bodyFlow());
     space.block()->addFunc(std::move(cb));
     space.block()->addStmt(util::mkptr(new output::Branch(
                         std::move(compl_pred), std::move(consq_flow), std::move(alter_flow))));
-    space.setAsyncSpace(body_flow);
+    space.setAsyncSpace(cb_body_flow);
     return util::mkptr(new output::Reference(pos, param_name));
 }
