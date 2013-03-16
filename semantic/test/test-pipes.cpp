@@ -70,6 +70,7 @@ TEST_F(PipelinesTest, AsyncPipeTopExpression)
                             (pos, CALL, 0)
                                 (pos, REFERENCE, "g")
                     (SCOPE_END)
+                    (EXC_THROW)
         (SCOPE_END)
     ;
 }
@@ -138,6 +139,7 @@ TEST_F(PipelinesTest, AsyncPipeNestedExpression)
                             (pos, CALL, 0)
                                 (pos, REFERENCE, "h")
                     (SCOPE_END)
+                    (EXC_THROW)
         (SCOPE_END)
     ;
 }
@@ -283,6 +285,7 @@ TEST_F(PipelinesTest, PipeAsyncBlock)
                         (ARITHMETICS)
                             (pos, REFERENCE, "merin")
                     (SCOPE_END)
+                    (EXC_THROW)
         (SCOPE_END)
     ;
 }

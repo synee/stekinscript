@@ -1,6 +1,7 @@
 #ifndef __STEKIN_OUTPUT_NAME_MANGLER_H__
 #define __STEKIN_OUTPUT_NAME_MANGLER_H__
 
+#include <vector>
 #include <string>
 
 #include <util/pointer.h>

@@ -116,6 +116,7 @@ namespace semantic {
 
         bool inPipe() const { return true; }
         util::sptr<output::Expression const> ret(util::sref<Expression const> val);
+        output::Method raiseMethod() const;
         void referenceThis();
     private:
         BaseCompilingSpace& _ext_space;
@@ -140,6 +141,7 @@ namespace semantic {
 
         void referenceThis();
         util::sptr<output::Expression const> ret(util::sref<Expression const> val);
+        output::Method raiseMethod() const;
     private:
         BaseCompilingSpace& _ext_space;
     };

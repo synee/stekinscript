@@ -421,6 +421,11 @@ util::sptr<output::Expression const> PipelineSpace::ret(util::sref<Expression co
     return BaseCompilingSpace::ret(val);
 }
 
+output::Method PipelineSpace::raiseMethod() const
+{
+    return _ext_space.raiseMethod();
+}
+
 util::sptr<output::Block> AsyncPipelineSpace::deliver()
 {
     block()->addStmt(util::mkptr(new output::PipelineContinue));
@@ -445,4 +450,9 @@ void SubCompilingSpace::referenceThis()
 util::sptr<output::Expression const> SubCompilingSpace::ret(util::sref<Expression const> val)
 {
     return _ext_space.ret(val);
+}
+
+output::Method SubCompilingSpace::raiseMethod() const
+{
+    return _ext_space.raiseMethod();
 }

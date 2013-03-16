@@ -17,7 +17,7 @@ void PipelineContinue::write(std::ostream& os) const
 
 static std::string const ASYNC_PIPE(
 "(function ($list) {\n"
-"    if (!($list) || $list.length === undefined) throw 'not iterable';\n"
+"    if (!($list) || $list.length === undefined) #RAISE_EXC\n"
 "    function $next($index, $result) {\n"
 "        var $key = null;\n"
 "        if ($index === $list.length) {\n"
@@ -41,7 +41,9 @@ std::string AsyncPipeline::str() const
         util::replace_all(
         util::replace_all(
         util::replace_all(
+        util::replace_all(
             ASYNC_PIPE
+                , "#RAISE_EXC", raiser("'not iterable'"))
                 , "#SUCCESSIVE_STATEMENTS", suc_os.str())
                 , "#NEXT", rec_os.str())
                 , "#LIST", list->str())

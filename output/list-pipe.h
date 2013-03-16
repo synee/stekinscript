@@ -2,6 +2,7 @@
 #define __STEKIN_OUTPUT_LIST_PIPELINE_H__
 
 #include "node-base.h"
+#include "methods.h"
 
 namespace output {
 
@@ -16,12 +17,14 @@ namespace output {
     {
         AsyncPipeline(misc::position const& pos
                     , util::sptr<Expression const> ls
-                    , util::sptr<Statement const> r
-                    , util::sptr<Statement const> s)
+                    , util::sptr<Statement const> recur
+                    , util::sptr<Statement const> suc
+                    , Method const& r)
             : Expression(pos)
             , list(std::move(ls))
-            , recursion(std::move(r))
-            , succession(std::move(s))
+            , recursion(std::move(recur))
+            , succession(std::move(suc))
+            , raiser(r)
         {}
 
         std::string str() const;
@@ -29,6 +32,7 @@ namespace output {
         util::sptr<Expression const> const list;
         util::sptr<Statement const> const recursion;
         util::sptr<Statement const> const succession;
+        Method const raiser;
     };
 
     struct SyncPipeline

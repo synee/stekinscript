@@ -33,7 +33,8 @@ util::sptr<output::Expression const> Pipeline::_compileAsync(BaseCompilingSpace&
                                 new output::AsyncPipeline(pos
                                                         , std::move(compl_list)
                                                         , section.compile(AsyncPipelineSpace(space))
-                                                        , std::move(succession_flow))))));
+                                                        , std::move(succession_flow)
+                                                        , space.raiseMethod())))));
     return util::mkptr(new output::PipeResult(pos));
 }
 

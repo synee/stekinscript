@@ -413,6 +413,7 @@ std::string AsyncPipeline::str() const
     list->str();
     recursion->write(dummyos());
     succession->write(dummyos());
+    raiser("");
     return "";
 }
 

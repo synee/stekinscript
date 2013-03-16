@@ -1,4 +1,5 @@
 #include "methods.h"
+#include "name-mangler.h"
 
 using namespace output;
 
@@ -14,6 +15,6 @@ Method method::callbackExc()
 {
     return [](std::string const& exception)
            {
-               return "return $c_$racb(" + exception + ");";
+               return "return " + formName(term::regularAsyncCallback()) + "(" + exception + ");";
            };
 }
