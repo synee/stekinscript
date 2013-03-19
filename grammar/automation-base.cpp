@@ -99,14 +99,14 @@ void AutomationBase::_setFollowings(std::set<TokenType> types)
                   });
 }
 
-void AutomationBase::_setShifts(std::map<TokenType, std::pair<AutomationCreator const&, bool>> types)
+void AutomationBase::_setShifts(std::map<TokenType, std::pair<AutomationCreator, bool>> types)
 {
     std::for_each(types.begin()
                 , types.end()
-                , [&](std::pair<TokenType, std::pair<AutomationCreator const&, bool>> t)
+                , [&](std::pair<TokenType, std::pair<AutomationCreator, bool>> t)
                   {
                       TokenType tp(t.first);
-                      AutomationCreator const& creator(t.second.first);
+                      AutomationCreator creator(t.second.first);
                       bool shiftToken(t.second.second);
                       _actions[tp] = [=](AutomationStack& stack, TypedToken const& token)
                                      {

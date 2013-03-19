@@ -44,7 +44,7 @@ namespace grammar {
         TokenAction _actions[TOKEN_TYPE_COUNT];
 
         void _setFollowings(std::set<TokenType> types);
-        void _setShifts(std::map<TokenType, std::pair<AutomationCreator const&, bool>> types);
+        void _setShifts(std::map<TokenType, std::pair<AutomationCreator, bool>> types);
 
         virtual bool _reduce(AutomationStack&, Token const&) { return false; }
     public:
