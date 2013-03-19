@@ -89,6 +89,10 @@ catch {
     return KW_RESERVED;
 }
 
+finally {
+    return KW_RESERVED;
+}
+
 with {
     return KW_RESERVED;
 }
