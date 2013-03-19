@@ -107,7 +107,6 @@ NodeType const test::DICT_BEGIN("dictionary begin");
 NodeType const test::DICT_END("dictionary end");
 NodeType const test::DICT_ITEM("dictionary item");
 
-NodeType const test::NAME_DEF("name definition");
 NodeType const test::ASYNC_RESULT_DEF("asynchronous result definition");
 
 NodeType const test::STATEMENT("statement");
@@ -115,7 +114,6 @@ NodeType const test::ARITHMETICS("arithmetics");
 NodeType const test::RETURN("return");
 NodeType const test::EXPORT("export");
 NodeType const test::EXPORT_VALUE("exported value");
-NodeType const test::ATTR_SET("attribute set");
 NodeType const test::DEC_THIS("declare this");
 NodeType const test::BRANCH("branch");
 

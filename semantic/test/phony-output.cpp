@@ -150,19 +150,6 @@ void Export::write(std::ostream&) const
     value->str();
 }
 
-void AttrSet::write(std::ostream&) const
-{
-    DataTree::actualOne()(ATTR_SET);
-    set_point->str();
-    value->str();
-}
-
-void NameDef::write(std::ostream&) const
-{
-    DataTree::actualOne()(NAME_DEF, name);
-    init->str();
-}
-
 void AsyncCallResultDef::write(std::ostream&) const
 {
     DataTree::actualOne()(ASYNC_RESULT_DEF);
@@ -292,14 +279,6 @@ std::string Call::str() const
     return "";
 }
 
-std::string MemberAccess::str() const
-{
-    DataTree::actualOne()(pos, BINARY_OP, ".");
-    referee->str();
-    DataTree::actualOne()(pos, REFERENCE, member);
-    return "";
-}
-
 std::string Lookup::str() const
 {
     DataTree::actualOne()(pos, BINARY_OP, "[]");
@@ -328,6 +307,14 @@ std::string Dictionary::str() const
                    kv.value->str();
                });
     DataTree::actualOne()(pos, DICT_END);
+    return "";
+}
+
+std::string Assignment::str() const
+{
+    DataTree::actualOne()(pos, BINARY_OP, "[=]");
+    lhs->str();
+    rhs->str();
     return "";
 }
 

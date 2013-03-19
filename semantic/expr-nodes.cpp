@@ -256,7 +256,8 @@ bool Call::isAsync() const
 
 util::sptr<output::Expression const> MemberAccess::compile(BaseCompilingSpace& space) const
 {
-    return util::mkptr(new output::MemberAccess(pos, referee->compile(space), member));
+    return util::mkptr(new output::Lookup(
+                pos, referee->compile(space), util::mkptr(new output::StringLiteral(pos, member))));
 }
 
 bool MemberAccess::isAsync() const

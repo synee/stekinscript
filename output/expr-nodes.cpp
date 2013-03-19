@@ -96,14 +96,6 @@ std::string FunctionInvocation::str() const
     return func->mangledName() + "(" + util::join(",", strList(args)) + ")";
 }
 
-std::string MemberAccess::str() const
-{
-    if (isReserved(member)) {
-        return referee->str() + "[\"" + member + "\"]";
-    }
-    return referee->str() + "." + member;
-}
-
 std::string Lookup::str() const
 {
     return collection->str() + "[" + key->str() + "]";
@@ -176,6 +168,11 @@ static std::string strBinaryOperator(std::string const& op_img)
         return op_img;
     }
     return r->second;
+}
+
+std::string Assignment::str() const
+{
+    return "(" + lhs->str() + "=" + rhs->str() + ")";
 }
 
 std::string BinaryOp::str() const

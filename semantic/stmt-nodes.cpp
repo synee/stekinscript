@@ -46,7 +46,10 @@ void NameDef::compile(BaseCompilingSpace& space) const
         return space.sym()->defConst(pos, name, *init);
     }
     space.sym()->defName(pos, name);
-    space.block()->addStmt(util::mkptr(new output::NameDef(name, std::move(init_value))));
+    space.block()->addStmt(util::mkptr(new output::Arithmetics(util::mkptr(new output::Assignment(
+                                                pos
+                                              , util::mkptr(new output::Reference(pos, name))
+                                              , std::move(init_value))))));
 }
 
 bool NameDef::isAsync() const
@@ -92,7 +95,8 @@ void AttrSet::compile(BaseCompilingSpace& space) const
 {
     util::sptr<output::Expression const> csp(set_point->compile(space));
     util::sptr<output::Expression const> cval(value->compile(space));
-    space.block()->addStmt(util::mkptr(new output::AttrSet(std::move(csp), std::move(cval))));
+    space.block()->addStmt(util::mkptr(new output::Arithmetics(util::mkptr(new output::Assignment(
+                                                pos, std::move(csp), std::move(cval))))));
 }
 
 bool AttrSet::isAsync() const

@@ -95,7 +95,6 @@ namespace test {
     extern NodeType const DICT_END;
     extern NodeType const DICT_ITEM;
 
-    extern NodeType const NAME_DEF;
     extern NodeType const ASYNC_RESULT_DEF;
 
     extern NodeType const STATEMENT;
@@ -103,7 +102,6 @@ namespace test {
     extern NodeType const RETURN;
     extern NodeType const EXPORT;
     extern NodeType const EXPORT_VALUE;
-    extern NodeType const ATTR_SET;
     extern NodeType const DEC_THIS;
     extern NodeType const BRANCH;
 

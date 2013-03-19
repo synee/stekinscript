@@ -37,20 +37,6 @@ namespace output {
         util::sptr<Expression const> const expr;
     };
 
-    struct NameDef
-        : Statement
-    {
-        NameDef(std::string const& n, util::sptr<Expression const> i)
-            : name(n)
-            , init(std::move(i))
-        {}
-
-        void write(std::ostream& os) const;
-
-        std::string const name;
-        util::sptr<Expression const> const init;
-    };
-
     struct AsyncCallResultDef
         : Statement
     {
@@ -87,20 +73,6 @@ namespace output {
         int count() const;
 
         std::vector<std::string> const export_point;
-        util::sptr<Expression const> const value;
-    };
-
-    struct AttrSet
-        : Statement
-    {
-        AttrSet(util::sptr<Expression const> s, util::sptr<Expression const> v)
-            : set_point(std::move(s))
-            , value(std::move(v))
-        {}
-
-        void write(std::ostream& os) const;
-
-        util::sptr<Expression const> const set_point;
         util::sptr<Expression const> const value;
     };
 

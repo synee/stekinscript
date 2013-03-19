@@ -156,23 +156,6 @@ namespace output {
         util::ptrarr<Expression const> const args;
     };
 
-    struct MemberAccess
-        : Expression
-    {
-        MemberAccess(misc::position const& pos
-                   , util::sptr<Expression const> ref
-                   , std::string const& mem)
-            : Expression(pos)
-            , referee(std::move(ref))
-            , member(mem)
-        {}
-
-        std::string str() const;
-
-        util::sptr<Expression const> const referee;
-        std::string const member;
-    };
-
     struct Lookup
         : Expression
     {
@@ -230,6 +213,23 @@ namespace output {
         : Expression
     {
         ListAppend(misc::position const& pos
+                 , util::sptr<Expression const> l
+                 , util::sptr<Expression const> r)
+            : Expression(pos)
+            , lhs(std::move(l))
+            , rhs(std::move(r))
+        {}
+
+        std::string str() const;
+
+        util::sptr<Expression const> const lhs;
+        util::sptr<Expression const> const rhs;
+    };
+
+    struct Assignment
+        : Expression
+    {
+        Assignment(misc::position const& pos
                  , util::sptr<Expression const> l
                  , util::sptr<Expression const> r)
             : Expression(pos)

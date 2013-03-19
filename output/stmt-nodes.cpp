@@ -31,11 +31,6 @@ void Arithmetics::write(std::ostream& os) const
     os << expr->str() << ";" << std::endl;
 }
 
-void NameDef::write(std::ostream& os) const
-{
-    os << formName(name) << "=" << init->str() << ";" << std::endl;
-}
-
 void AsyncCallResultDef::write(std::ostream& os) const
 {
     os << "var " << formAsyncRef(async_result.id()) << "=" << async_result->str() << ";"
@@ -60,11 +55,6 @@ void Export::write(std::ostream& os) const
 int Export::count() const
 {
     return export_point.size() - 1;
-}
-
-void AttrSet::write(std::ostream& os) const
-{
-    os << set_point->str() << "=" << value->str() << ";" << std::endl;
 }
 
 void ThisDeclaration::write(std::ostream& os) const
