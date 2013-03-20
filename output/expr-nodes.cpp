@@ -96,6 +96,14 @@ std::string FunctionInvocation::str() const
     return func->mangledName() + "(" + util::join(",", strList(args)) + ")";
 }
 
+std::string MemberAccess::str() const
+{
+    if (isReserved(member)) {
+        return referee->str() + "[\"" + member + "\"]";
+    }
+    return referee->str() + "." + member;
+}
+
 std::string Lookup::str() const
 {
     return collection->str() + "[" + key->str() + "]";

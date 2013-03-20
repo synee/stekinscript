@@ -131,6 +131,14 @@ std::string FunctionInvocation::str() const
     return "";
 }
 
+std::string MemberAccess::str() const
+{
+    DataTree::actualOne()(pos, BINARY_OP, "[.]");
+    referee->str();
+    DataTree::actualOne()(pos, REFERENCE, member);
+    return "";
+}
+
 void Return::write(std::ostream&) const
 {
     DataTree::actualOne()(RETURN);

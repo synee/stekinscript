@@ -156,6 +156,23 @@ namespace output {
         util::ptrarr<Expression const> const args;
     };
 
+    struct MemberAccess
+        : Expression
+    {
+        MemberAccess(misc::position const& pos
+                   , util::sptr<Expression const> ref
+                   , std::string const& mem)
+            : Expression(pos)
+            , referee(std::move(ref))
+            , member(mem)
+        {}
+
+        std::string str() const;
+
+        util::sptr<Expression const> const referee;
+        std::string const member;
+    };
+
     struct Lookup
         : Expression
     {
