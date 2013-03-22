@@ -600,7 +600,7 @@ NestedOrParamsAutomation::NestedOrParamsAutomation()
     , _wait_for_colon(false)
     , _lambda_ret_val(nullptr)
 {
-    _setFollowings({ PIPE_SEP, OPEN_PAREN, OPEN_BRACKET, OPERATOR });
+    _setFollowings({ IF, ELSE, PIPE_SEP, OPEN_PAREN, OPEN_BRACKET, OPERATOR });
     _actions[COMMA] = [&](AutomationStack& stack, TypedToken const& token)
                       {
                           _pushComma(stack, token);

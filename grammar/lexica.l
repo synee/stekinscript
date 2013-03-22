@@ -113,6 +113,14 @@ for {
     return KW_RESERVED;
 }
 
+gen {
+    return KW_RESERVED;
+}
+
+ctor {
+    return KW_RESERVED;
+}
+
 while {
     return KW_RESERVED;
 }
