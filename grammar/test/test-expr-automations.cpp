@@ -1517,3 +1517,51 @@ TEST_F(AutomationTest, ReduceRegularAsyncCall)
         (BLOCK_END)
     ;
 }
+
+TEST_F(AutomationTest, ConditionalNested)
+{
+    misc::position pos(37);
+    TestClause clause;
+    stack->push(util::mkptr(new grammar::ExprStmtAutomation(util::mkref(clause))));
+
+    pushIdent(pos, "kataoka");
+    pushIf(pos);
+
+    open(pos, "(");
+    pushIdent(pos, "takei");
+    pushIf(pos);
+    pushIdent(pos, "someya");
+    pushElse(pos);
+    pushIdent(pos, "haramura");
+    close(pos, ")");
+
+    pushElse(pos);
+    pushIdent(pos, "miyanaga");
+
+    ASSERT_TRUE(stack->top()->finishOnBreak(true));
+    finish(pos);
+
+    clause.compile();
+    clause.filter->deliver().compile(semantic::CompilingSpace());
+    ASSERT_FALSE(error::hasError());
+    ASSERT_TRUE(stack->empty());
+
+    DataTree::expectOne()
+        (BLOCK_BEGIN)
+        (pos, ARITHMETICS)
+            (pos, CONDITIONAL)
+            (pos, OPERAND)
+                (pos, CONDITIONAL)
+                (pos, OPERAND)
+                    (pos, IDENTIFIER, "someya")
+                (pos, OPERAND)
+                    (pos, IDENTIFIER, "takei")
+                (pos, OPERAND)
+                    (pos, IDENTIFIER, "haramura")
+            (pos, OPERAND)
+                (pos, IDENTIFIER, "kataoka")
+            (pos, OPERAND)
+                (pos, IDENTIFIER, "miyanaga")
+        (BLOCK_END)
+    ;
+}

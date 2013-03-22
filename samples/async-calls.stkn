@@ -24,4 +24,14 @@ func cancelAtFirstTime(timeoutHandle)
 
 cancelAtFirstTime(setInterval(%, 1))
 
+func asyncRaiseError(callback)
+    setTimeout(%, 1)
+    callback('error message')
+
+((%%):
+    asyncRaiseError(%%)
+)((error, result):
+    console.log(error)
+)
+
 console.log('End')
